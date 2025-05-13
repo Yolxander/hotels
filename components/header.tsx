@@ -25,7 +25,7 @@ export function Header() {
       <div className="flex items-center gap-2">
         <div className="font-semibold text-xl">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl"></span> KeyWatch
+            CocoStay
           </Link>
         </div>
       </div>

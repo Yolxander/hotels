@@ -12,9 +12,9 @@ export default function Home() {
       <Header />
       <main className="bg-[#f9f9f9] px-4">
         {/* Hero Section */}
-        <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-6  shadow-lg">
+        <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
           <Image
-            src="/hotel/glassgardensso.jpg" // Replace with your actual hero image path
+            src="/hotel/glassgardensso.jpg"
             alt="Tent in the woods"
             fill
             className="object-cover w-full h-full"
@@ -22,7 +22,7 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-            <h1 className="text-white text-3xl md:text-5xl font-light text-center leading-tight drop-shadow-lg">
+            <h1 className="text-white text-4xl md:text-6xl font-bold tracking-tight text-center leading-tight drop-shadow-lg">
               Secure Your Dream Vacation<br />with a Reservation
             </h1>
             {/* Search Bar */}
@@ -30,7 +30,7 @@ export default function Home() {
               {/* Location */}
               <div className="flex items-center gap-2 px-4 py-2">
                 <MapPin className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base">Location</span>
+                <span className="text-gray-700 text-base font-medium">Location</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
               {/* Divider */}
@@ -38,7 +38,7 @@ export default function Home() {
               {/* Check in - Check out */}
               <div className="flex items-center gap-2 px-4 py-2">
                 <CalendarIcon className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base">Check in - Check out</span>
+                <span className="text-gray-700 text-base font-medium">Check in - Check out</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
               {/* Divider */}
@@ -46,32 +46,32 @@ export default function Home() {
               {/* Person */}
               <div className="flex items-center gap-2 px-4 py-2">
                 <UserIcon className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base">Person</span>
+                <span className="text-gray-700 text-base font-medium">Person</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
               {/* Search Button */}
-              <button className="ml-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-semibold flex items-center gap-2 transition">
+              <button className="ml-2 bg-green-600 hover:bg-green-700 text-white px-7 py-2 rounded-full font-bold flex items-center gap-2 transition text-base shadow-md">
                 <SearchIcon className="h-5 w-5" />
                 Search
               </button>
             </div>
             {/* Subtext & Stats */}
             <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mt-8">
-              <div className="text-white text-sm md:text-base font-light md:text-left text-center max-w-md">
+              <div className="text-white text-base font-medium md:text-left text-center max-w-md">
                 We believe in the power of the great outdoors. We think that everyone deserves the chance to explore the wild and to find their very own adventure.
               </div>
               <div className="flex gap-8 mt-4 md:mt-0 text-white text-center">
                 <div>
-                  <div className="text-2xl font-bold">121+</div>
-                  <div className="text-xs opacity-80">Capital Raised</div>
+                  <div className="text-3xl font-bold">121+</div>
+                  <div className="text-xs opacity-80 font-medium">Capital Raised</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">80+</div>
-                  <div className="text-xs opacity-80">Happy Costumers</div>
+                  <div className="text-3xl font-bold">80+</div>
+                  <div className="text-xs opacity-80 font-medium">Happy Costumers</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">1K+</div>
-                  <div className="text-xs opacity-80">Property options</div>
+                  <div className="text-3xl font-bold">1K+</div>
+                  <div className="text-xs opacity-80 font-medium">Property options</div>
                 </div>
               </div>
             </div>
@@ -79,12 +79,12 @@ export default function Home() {
         </section>
 
         {/* Top-rated Hotel Section */}
-        <section className="mx-auto mt-16 px-4">
+        <section className="mx-auto mt-16 mb-16 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 max-w-lg leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 max-w-lg leading-tight">
               Our top-rated and<br />highly visited hotel
             </h2>
-            <div className="text-gray-500 text-base max-w-md mt-4 md:mt-0 md:text-right">
+            <div className="text-gray-500 text-lg max-w-md mt-4 md:mt-0 md:text-right font-medium">
               Discover our handpicked selection of the year's finest hotels, curated based on feedback from our delighted visitors
             </div>
           </div>
@@ -97,42 +97,52 @@ export default function Home() {
             {/* Hotel Cards */}
             <div className="flex gap-6 overflow-x-auto scrollbar-hide">
               {/* Card 1 - Active */}
-              <div className="min-w-[340px] max-w-[340px] bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-green-600">
-                <Image
-                  src="/hotel1.jpg" // Replace with your hotel image
-                  alt="Grand Mega Hotel"
-                  width={340}
-                  height={180}
-                  className="w-full h-44 object-cover"
-                />
-                <div className="p-6">
-                  <div className="text-lg font-semibold">Grand Mega Hotel</div>
-                  <div className="text-gray-500 text-sm mb-2">Denpasar, Bali</div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-gray-300">★</span>
-                    <span className="ml-2 text-gray-500 text-xs">(122 visitors)</span>
-                  </div>
-                </div>
-              </div>
-              {/* Card 2 */}
               <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
                 <Image
-                  src="/hotel2.jpg" // Replace with your hotel image
+                  src="/hotel2.jpg"
                   alt="Hotel 2"
                   width={240}
                   height={180}
                   className="w-full h-32 object-cover"
                 />
               </div>
+              {/* Card 2 */}
+              <div className="min-w-[450px] max-w-[450px] bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-green-600">
+                <Image
+                  src="/hotel1.jpg"
+                  alt="Grand Mega Hotel"
+                  width={340}
+                  height={180}
+                  className="w-full h-44 object-cover"
+                />
+                <div className="p-6">
+                  <div className="text-2xl font-bold">Grand Mega Hotel</div>
+                  <div className="text-gray-500 text-base mb-2 font-medium">Denpasar, Bali</div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-gray-300 text-xl">★</span>
+                    <span className="ml-2 text-gray-500 text-base font-medium">(122 visitors)</span>
+                  </div>
+                </div>
+              </div>
               {/* Card 3 */}
               <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
                 <Image
-                  src="/hotel3.jpg" // Replace with your hotel image
+                  src="/hotel3.jpg"
                   alt="Hotel 3"
+                  width={240}
+                  height={180}
+                  className="w-full h-32 object-cover"
+                />
+              </div>
+              {/* Card 4 */}
+              <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
+                <Image
+                  src="/hotel4.jpg"
+                  alt="Hotel 4"
                   width={240}
                   height={180}
                   className="w-full h-32 object-cover"
@@ -145,7 +155,121 @@ export default function Home() {
             </button>
           </div>
         </section>
+
+
+            {/* Event Banner Section */}
+        <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-12">
+          <Image
+            src="hotel/GVL-Destinations-Image1-1500x960.jpg" 
+            alt="Snow Garden Hotel"
+            fill
+            className="object-cover w-full h-full"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full p-10 flex flex-col md:flex-row md:items-end md:justify-between z-10">
+            <div>
+              <div className="mb-2">
+                <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">Upcoming Events</span>
+              </div>
+              <h2 className="text-white text-3xl md:text-5xl font-bold leading-tight mb-4">Upcoming event at<br />Snow Garden Hotel</h2>
+              <div className="flex items-center gap-6 text-white/90 text-base font-medium">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5" />
+                  <span>October 20, 2025</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  <span>Snow Garden Hotel</span>
+                </div>
+              </div>
+            </div>
+            <button className="mt-8 md:mt-0 bg-yellow-300 hover:bg-yellow-400 text-gray-900 font-semibold px-10 py-4 rounded-full text-lg shadow-lg transition">Book Now</button>
+          </div>
+        </section>
+
+        {/* Dream Getaway Section */}
+        <section className="w-full max-w-7xl mx-auto mt-20 flex flex-col md:flex-row items-center justify-between gap-12 ">
+          {/* Left: Large Image */}
+          <div className="flex-1 flex justify-center">
+            <div className="rounded-3xl overflow-hidden w-[420px] h-[420px]">
+              <Image
+                src="/hotel/reception.jpg" // Replace with your actual image path
+                alt="Hotel Reception"
+                width={420}
+                height={420}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          </div>
+          {/* Right: Text and Button */}
+          <div className="flex-1 flex flex-col items-start justify-center max-w-2xl">
+            <h2 className="text-5xl font-bold text-gray-900 leading-tight mb-6">Your Dream Getaway<br />Awaits – Don't Wait!</h2>
+            <p className="text-lg text-gray-700 mb-8">Ready to escape and create unforgettable memories? Book your stay now and experience luxury, comfort, and breathtaking views at Snow Garden Hotel.</p>
+            <button className="bg-yellow-300 hover:bg-yellow-400 text-gray-900 font-semibold px-8 py-4 rounded-full text-lg shadow-lg flex items-center gap-2 transition mb-10">
+              Reserve Your Stay Today!
+              <ArrowUpRight className="h-5 w-5" />
+            </button>
+            <div className="w-full flex justify-end">
+              <div className="rounded-2xl overflow-hidden w-[160px] h-[100px]">
+                <Image
+                  src="/hotel/lobby-small.jpg" // Replace with your actual image path
+                  alt="Hotel Lobby"
+                  width={160}
+                  height={100}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
+      {/* Footer Section */}
+      <footer className="w-full bg-[#181a1b] py-16 px-4 mt-24 rounded-t-3xl">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-12">
+          {/* Left: Logo and Socials */}
+          <div className="flex flex-col items-center md:items-start flex-1">
+            <div className="text-6xl font-bold text-yellow-300 mb-8">CocoStay</div>
+            <div className="flex gap-4 mb-4">
+              {/* Social Icons */}
+              <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 15 15 12 10 9 10 15"/></svg></a>
+              <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 9h.01M15 9h.01M7 15c1.5-2 8.5-2 10 0"/></svg></a>
+              <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 8a6 6 0 0 1-8 8"/><circle cx="12" cy="12" r="2"/></svg></a>
+              <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37V7a4 4 0 0 0-8 0v4.37"/><path d="M5 20h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2z"/></svg></a>
+              <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8a6 6 0 0 1-8 8"/><circle cx="12" cy="12" r="2"/></svg></a>
+            </div>
+          </div>
+          {/* Right: Links */}
+          <div className="flex-1 flex flex-col md:flex-row justify-end gap-16">
+            <div>
+              <div className="text-white text-lg font-semibold mb-4">Company</div>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Mission</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Vision</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Story</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Meet Our Team</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-white text-lg font-semibold mb-4">Features</div>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Find Hotels</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Book Hotels</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Plan a Trip</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Write a Review</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-white text-lg font-semibold mb-4">Help</div>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Term of Services</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Customer Service</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

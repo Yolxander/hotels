@@ -491,14 +491,14 @@ export default function DashboardPage() {
       <main>
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 relative rounded-3xl overflow-hidden inset-0 z-10 bg-gradient-to-r from-black/30 to-transparent">
-              <div className="absolute "></div>
+            <div className="lg:col-span-2 relative rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 z-10 bg-black/50"></div>
               <Image
                 src="/hotel/Lindos-Grand-Resort-pool_bu.jpg?height=600&width=1000"
                 alt="Luxury hotel room"
                 width={1000}
                 height={1000}
-                className="w-full object-cover"
+                className="w-full h-[600px] object-cover"
               />
 
               <div className="absolute bottom-16 left-16 z-20">

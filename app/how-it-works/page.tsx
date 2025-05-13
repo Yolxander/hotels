@@ -89,7 +89,7 @@ export default function HowItWorksPage() {
       <main>
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 relative rounded-3xl overflow-hidden">
+          <div className="lg:col-span-2 relative rounded-3xl overflow-hidden">
               <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/30 to-transparent"></div>
               <Image
                 src="/hotel/news-main-lti-highlights.jpg?height=600&width=1000"

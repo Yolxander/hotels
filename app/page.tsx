@@ -14,8 +14,8 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
           <Image
-            src="/hotel/glassgardensso.jpg"
-            alt="Tent in the woods"
+            src="/hotel/hotel-main.jpg"
+            alt="Hotel price tracking hero"
             fill
             className="object-cover w-full h-full"
             priority
@@ -23,7 +23,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
             <h1 className="text-white text-4xl md:text-6xl font-bold tracking-tight text-center leading-tight drop-shadow-lg">
-              Secure Your Dream Vacation<br />with a Reservation
+              Save Money <span className="text-yellow-300">After</span> You Book<br />with CocoStay
             </h1>
             {/* Search Bar */}
             <div className="mt-8 w-full max-w-3xl flex items-center bg-white rounded-full shadow-md px-2 py-1 gap-2">
@@ -50,7 +50,7 @@ export default function Home() {
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
               {/* Search Button */}
-              <button className="ml-2 bg-green-600 hover:bg-green-700 text-white px-7 py-2 rounded-full font-bold flex items-center gap-2 transition text-base shadow-md">
+              <button className="ml-2 bg-yellow-300 hover:bg-yellow-400 text-black px-7 py-2 rounded-full font-bold flex items-center gap-2 transition text-base shadow-md">
                 <SearchIcon className="h-5 w-5" />
                 Search
               </button>
@@ -58,20 +58,20 @@ export default function Home() {
             {/* Subtext & Stats */}
             <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mt-8">
               <div className="text-white text-base font-medium md:text-left text-center max-w-md">
-                We believe in the power of the great outdoors. We think that everyone deserves the chance to explore the wild and to find their very own adventure.
+                Booked a hotel? Let CocoStay track your reservation and find better deals automatically. We monitor price drops and compare offers across the web—so you never overpay again.
               </div>
               <div className="flex gap-8 mt-4 md:mt-0 text-white text-center">
                 <div>
-                  <div className="text-3xl font-bold">121+</div>
-                  <div className="text-xs opacity-80 font-medium">Capital Raised</div>
+                  <div className="text-3xl font-bold">24/7</div>
+                  <div className="text-xs opacity-80 font-medium">Price Monitoring</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">80+</div>
-                  <div className="text-xs opacity-80 font-medium">Happy Costumers</div>
+                  <div className="text-3xl font-bold">100+</div>
+                  <div className="text-xs opacity-80 font-medium">Sites Compared</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">1K+</div>
-                  <div className="text-xs opacity-80 font-medium">Property options</div>
+                  <div className="text-3xl font-bold">$1M+</div>
+                  <div className="text-xs opacity-80 font-medium">Saved for Travelers</div>
                 </div>
               </div>
             </div>
@@ -82,10 +82,10 @@ export default function Home() {
         <section className="mx-auto mt-16 mb-16 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 max-w-lg leading-tight">
-              Our top-rated and<br />highly visited hotel
+              How CocoStay Works for You
             </h2>
             <div className="text-gray-500 text-lg max-w-md mt-4 md:mt-0 md:text-right font-medium">
-              Discover our handpicked selection of the year's finest hotels, curated based on feedback from our delighted visitors
+              Enter your booking details once. We track your hotel's price, compare it across top travel sites, and alert you if you can rebook for less—no extra effort required.
             </div>
           </div>
           {/* Carousel */}
@@ -116,15 +116,15 @@ export default function Home() {
                   className="w-full h-44 object-cover"
                 />
                 <div className="p-6">
-                  <div className="text-2xl font-bold">Grand Mega Hotel</div>
-                  <div className="text-gray-500 text-base mb-2 font-medium">Denpasar, Bali</div>
+                  <div className="text-2xl font-bold">Automatic Price Drop Alerts</div>
+                  <div className="text-gray-500 text-base mb-2 font-medium">We'll notify you if your room's price drops—so you can rebook and save instantly.</div>
                   <div className="flex items-center gap-1 mb-1">
                     <span className="text-yellow-400 text-xl">★</span>
                     <span className="text-yellow-400 text-xl">★</span>
                     <span className="text-yellow-400 text-xl">★</span>
                     <span className="text-yellow-400 text-xl">★</span>
                     <span className="text-gray-300 text-xl">★</span>
-                    <span className="ml-2 text-gray-500 text-base font-medium">(122 visitors)</span>
+                    <span className="ml-2 text-gray-500 text-base font-medium">(122 travelers saved)</span>
                   </div>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function Home() {
             {/* Event Banner Section */}
         <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-12">
           <Image
-            src="hotel/GVL-Destinations-Image1-1500x960.jpg" 
+            src="/hotel/photo-15.jpeg" 
             alt="Snow Garden Hotel"
             fill
             className="object-cover w-full h-full"

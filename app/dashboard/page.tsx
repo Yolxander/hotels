@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingStep, setLoadingStep] = useState<'idle' | 'setting-up' | 'finalizing' | 'completed'>('idle')
   const { user } = useAuth()
   const [formData, setFormData] = useState({
     hotel_name: "",
@@ -96,7 +97,7 @@ export default function DashboardPage() {
       return
     }
 
-    setLoading(true)
+    setLoadingStep('setting-up')
     try {
       const { error } = await supabase
         .from('bookings')
@@ -119,6 +120,14 @@ export default function DashboardPage() {
         throw error
       }
 
+      setLoadingStep('finalizing')
+      // Simulate a delay for the finalizing step
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      setLoadingStep('completed')
+      // Wait a moment before closing and reloading
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       // Close dialog and reset form
       setIsDialogOpen(false)
       setFormData({
@@ -131,11 +140,12 @@ export default function DashboardPage() {
 
       // Refresh the bookings data
       await fetchBookings()
+      window.location.reload()
     } catch (error) {
       console.error('Error saving booking:', error)
       alert('Error saving booking. Please try again.')
     } finally {
-      setLoading(false)
+      setLoadingStep('idle')
     }
   }
 
@@ -154,123 +164,139 @@ export default function DashboardPage() {
               check_out_date: undefined,
               original_price: "",
             })
+            setLoadingStep('idle')
           }
         }}
       >
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Track a New Hotel Booking</DialogTitle>
-            <DialogDescription>Enter the details of your hotel booking to start tracking price changes.</DialogDescription>
-          </DialogHeader>
+        <DialogContent className={`sm:max-w-[600px] ${loadingStep !== 'idle' ? 'bg-white' : ''}`}>
+          {loadingStep === 'idle' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Track a New Hotel Booking</DialogTitle>
+                <DialogDescription>Enter the details of your hotel booking to start tracking price changes.</DialogDescription>
+              </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="hotel-name">Hotel Name*</Label>
-                <Input
-                  id="hotel-name"
-                  placeholder="e.g. Hilton Garden Inn"
-                  value={formData.hotel_name}
-                  onChange={(e) => handleInputChange("hotel_name", e.target.value)}
-                />
-              </div>
+              <div className="space-y-6 py-4">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="hotel-name">Hotel Name*</Label>
+                    <Input
+                      id="hotel-name"
+                      placeholder="e.g. Hilton Garden Inn"
+                      value={formData.hotel_name}
+                      onChange={(e) => handleInputChange("hotel_name", e.target.value)}
+                    />
+                  </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="location">Location*</Label>
-                <Input
-                  id="location"
-                  placeholder="e.g. Tokyo, Japan"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange("location", e.target.value)}
-                />
-              </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="location">Location*</Label>
+                    <Input
+                      id="location"
+                      placeholder="e.g. Tokyo, Japan"
+                      value={formData.location}
+                      onChange={(e) => handleInputChange("location", e.target.value)}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="check-in">Check-in Date*</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.check_in_date && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.check_in_date ? format(formData.check_in_date, "PPP") : <span>Select date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={formData.check_in_date}
-                        onSelect={(date) => handleInputChange("check_in_date", date)}
-                        initialFocus
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="check-in">Check-in Date*</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.check_in_date && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.check_in_date ? format(formData.check_in_date, "PPP") : <span>Select date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={formData.check_in_date}
+                            onSelect={(date) => handleInputChange("check_in_date", date)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="check-out">Check-out Date*</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.check_out_date && "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.check_out_date ? format(formData.check_out_date, "PPP") : <span>Select date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={formData.check_out_date}
+                            onSelect={(date) => handleInputChange("check_out_date", date)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="price">Original Price*</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <Input
+                        id="price"
+                        type="number"
+                        className="pl-7"
+                        placeholder="e.g. 450"
+                        value={formData.original_price}
+                        onChange={(e) => handleInputChange("original_price", e.target.value)}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="check-out">Check-out Date*</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !formData.check_out_date && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.check_out_date ? format(formData.check_out_date, "PPP") : <span>Select date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={formData.check_out_date}
-                        onSelect={(date) => handleInputChange("check_out_date", date)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="price">Original Price*</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                  <Input
-                    id="price"
-                    type="number"
-                    className="pl-7"
-                    placeholder="e.g. 450"
-                    value={formData.original_price}
-                    onChange={(e) => handleInputChange("original_price", e.target.value)}
-                  />
-                </div>
+              <div className="flex justify-end">
+                <Button onClick={handleSubmit} disabled={loading}>
+                  {loading ? 'Saving...' : 'Start Tracking'}
+                </Button>
               </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              {loadingStep === 'setting-up' && (
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-300 mb-4"></div>
+                  <p className="text-lg font-medium">Setting up...</p>
+                </div>
+              )}
+              {loadingStep === 'finalizing' && (
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-300 mb-4"></div>
+                  <p className="text-lg font-medium">Finalizing...</p>
+                </div>
+              )}
+              {loadingStep === 'completed' && (
+                <div className="text-center">
+                  <CheckCircle2 className="h-12 w-12 text-yellow-300 mb-4" />
+                  <p className="text-lg font-medium">Finalized!</p>
+                </div>
+              )}
             </div>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Start Tracking'}
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 

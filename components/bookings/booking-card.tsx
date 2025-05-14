@@ -31,7 +31,7 @@ export function BookingCard({
     <Card className="overflow-hidden rounded-3xl">
       <div className="relative h-48">
         <img src={image || "/placeholder.svg"} alt={hotel} className="w-full h-full object-cover" />
-        {hasSavings && <Badge className="absolute top-3 right-3 bg-green-500">Price Drop!</Badge>}
+        {hasSavings && <Badge className="absolute top-3 right-3 bg-yellow-300 text-black">Price Drop!</Badge>}
       </div>
       <CardHeader>
         <CardTitle>{hotel}</CardTitle>
@@ -59,21 +59,21 @@ export function BookingCard({
             <div>
               <div className="text-sm text-gray-500">Original Price</div>
               <div className="font-semibold">${originalPrice}</div>
-            </div>
+            </div>    
             <div>
               <div className="text-sm text-gray-500">Current Price</div>
-              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>${currentPrice}</div>
+              <div className={`font-semibold ${hasSavings ? "underline decoration-4 decoration-yellow-300" : ""}`}>${currentPrice}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500">Savings</div>
-              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>${savings}</div>
+              <div className={`font-semibold ${hasSavings ? "underline decoration-4 decoration-yellow-300" : ""}`}>${savings}</div>
             </div>
           </div>
         </div>
 
         {hasSavings && (
-          <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-            <p className="text-sm text-green-800">
+          <div className="bg-yellow-300 p-3 rounded-lg border border-yellow-100">
+            <p className="text-sm text-black">
               Good news! The price for your hotel dropped from ${originalPrice} to ${currentPrice}. You may want to
               rebook and save!
             </p>

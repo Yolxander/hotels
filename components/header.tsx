@@ -29,7 +29,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold">Hotel Price Tracker</span>
+            <h1 className="font-bold text-2xl">CocoStay</h1>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -37,7 +37,9 @@ export function Header() {
             {user ? (
               <>
                 <Button className="rounded-full bg-black text-white hover:bg-gray-800" asChild>
-                  <Link href="/dashboard">Go to Dashboard</Link>
+                  <Link href={isDashboard ? "/" : "/dashboard"}>
+                    {isDashboard ? "Home" : "Go to Dashboard"}
+                  </Link>
                 </Button>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Bell className="h-5 w-5" />

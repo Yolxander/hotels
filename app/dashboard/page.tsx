@@ -289,7 +289,7 @@ export default function DashboardPage() {
 
               <div className="absolute bottom-16 left-16 z-20">
                 <h1 className="text-5xl font-light text-white leading-tight">
-                  Your <span className="italic font-normal">Savings</span>
+                  Your <span className="italic font-normal text-yellow-300">Savings</span>
                   <br />
                   Dashboard
                 </h1>

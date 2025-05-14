@@ -34,7 +34,7 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
 
     try {
       await signUp(email, password)
-      router.push('/')
+      router.push('/dashboard')
       onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

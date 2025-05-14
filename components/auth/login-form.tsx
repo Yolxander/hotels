@@ -27,7 +27,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
     try {
       await signIn(email, password)
-      router.push('/')
+      router.push('/dashboard')
       onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

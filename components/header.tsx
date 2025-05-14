@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { User, Bell, Calendar, Users, DollarSign, Building } from "lucide-react"
+import { LogOut, Bell, Calendar, Users, DollarSign, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -43,7 +43,7 @@ export function Header() {
                   <Bell className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon" className="rounded-full" onClick={() => signOut()}>
-                  <User className="h-5 w-5" />
+                  <LogOut className="h-5 w-5" />
                 </Button>
               </>
             ) : (

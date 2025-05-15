@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LogOut, Bell, Calendar, Users, DollarSign, Building } from "lucide-react"
+import { LogOut, Bell, Calendar, Users, DollarSign, Building, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -36,6 +36,12 @@ export function Header() {
           <div className="flex items-center space-x-2">
             {user ? (
               <>
+                <Button variant="ghost" size="sm" className="rounded-full" asChild>
+                  <Link href="/tracker">
+                    <Search className="h-4 w-4 mr-2" />
+                    Track Hotel
+                  </Link>
+                </Button>
                 <Button className="rounded-full bg-black text-white hover:bg-gray-800" asChild>
                   <Link href={isDashboard ? "/" : "/dashboard"}>
                     {isDashboard ? "Home" : "Go to Dashboard"}

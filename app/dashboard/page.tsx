@@ -54,6 +54,7 @@ export default function DashboardPage() {
     check_in_date: undefined as Date | undefined,
     check_out_date: undefined as Date | undefined,
     original_price: "",
+    room_type: "",
   })
 
   const fetchBookings = async () => {
@@ -92,7 +93,7 @@ export default function DashboardPage() {
     }
 
     // Validate required fields
-    if (!formData.hotel_name || !formData.location || !formData.check_in_date || !formData.check_out_date || !formData.original_price) {
+    if (!formData.hotel_name || !formData.location || !formData.check_in_date || !formData.check_out_date || !formData.original_price || !formData.room_type) {
       alert('Please fill in all required fields')
       return
     }
@@ -111,6 +112,7 @@ export default function DashboardPage() {
             original_price: parseFloat(formData.original_price),
             current_price: parseFloat(formData.original_price),
             savings: 0,
+            room_type: formData.room_type,
             image_url: '/placeholder.svg?height=200&width=400'
           }
         ])
@@ -136,6 +138,7 @@ export default function DashboardPage() {
         check_in_date: undefined,
         check_out_date: undefined,
         original_price: "",
+        room_type: "",
       })
 
       // Refresh the bookings data
@@ -163,6 +166,7 @@ export default function DashboardPage() {
               check_in_date: undefined,
               check_out_date: undefined,
               original_price: "",
+              room_type: "",
             })
             setLoadingStep('idle')
           }
@@ -265,6 +269,16 @@ export default function DashboardPage() {
                         onChange={(e) => handleInputChange("original_price", e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="room-type">Room Type*</Label>
+                    <Input
+                      id="room-type"
+                      placeholder="e.g. Standard Room"
+                      value={formData.room_type}
+                      onChange={(e) => handleInputChange("room_type", e.target.value)}
+                    />
                   </div>
                 </div>
               </div>

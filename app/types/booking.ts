@@ -9,6 +9,7 @@ export interface Booking {
   current_price: number;
   savings: number;
   image_url: string;
+  room_type: string;
   created_at: string;
   updated_at: string;
 } 

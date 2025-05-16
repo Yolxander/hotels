@@ -96,25 +96,33 @@ export default function Home() {
             </button>
             {/* Hotel Cards */}
             <div className="flex gap-6 overflow-x-auto scrollbar-hide">
-              {/* Card 1 - Active */}
-              <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
-                <Image
-                  src="/hotel2.jpg"
-                  alt="Hotel 2"
-                  width={240}
-                  height={180}
-                  className="w-full h-32 object-cover"
-                />
+              {/* Card 1 */}
+              <div className="min-w-[450px] max-w-[450px] bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-2 hover:border-green-600">
+                <div className="h-44 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                  <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <div className="p-6">
+                  <div className="text-2xl font-bold">Find Best Booking Prices</div>
+                  <div className="text-gray-500 text-base mb-2 font-medium">We help you discover the most competitive rates for your dream hotel stay.</div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-gray-300 text-xl">★</span>
+                    <span className="ml-2 text-gray-500 text-base font-medium">(98 travelers saved)</span>
+                  </div>
+                </div>
               </div>
               {/* Card 2 */}
               <div className="min-w-[450px] max-w-[450px] bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-green-600">
-                <Image
-                  src="/hotel1.jpg"
-                  alt="Grand Mega Hotel"
-                  width={340}
-                  height={180}
-                  className="w-full h-44 object-cover"
-                />
+                <div className="h-44 bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                  <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
                 <div className="p-6">
                   <div className="text-2xl font-bold">Automatic Price Drop Alerts</div>
                   <div className="text-gray-500 text-base mb-2 font-medium">We'll notify you if your room's price drops—so you can rebook and save instantly.</div>
@@ -129,24 +137,44 @@ export default function Home() {
                 </div>
               </div>
               {/* Card 3 */}
-              <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
-                <Image
-                  src="/hotel3.jpg"
-                  alt="Hotel 3"
-                  width={240}
-                  height={180}
-                  className="w-full h-32 object-cover"
-                />
+              <div className="min-w-[450px] max-w-[450px] bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-2 hover:border-green-600">
+                <div className="h-44 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                  <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div className="p-6">
+                  <div className="text-2xl font-bold">Monitor Current Bookings</div>
+                  <div className="text-gray-500 text-base mb-2 font-medium">Keep track of price changes for your existing bookings to maximize savings.</div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-gray-300 text-xl">★</span>
+                    <span className="ml-2 text-gray-500 text-base font-medium">(85 travelers saved)</span>
+                  </div>
+                </div>
               </div>
               {/* Card 4 */}
-              <div className="min-w-[240px] max-w-[240px] bg-white rounded-3xl shadow-md overflow-hidden">
-                <Image
-                  src="/hotel4.jpg"
-                  alt="Hotel 4"
-                  width={240}
-                  height={180}
-                  className="w-full h-32 object-cover"
-                />
+              <div className="min-w-[450px] max-w-[450px] bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-2 hover:border-green-600">
+                <div className="h-44 bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                  <svg className="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="p-6">
+                  <div className="text-2xl font-bold">Auto-Book Best Deals</div>
+                  <div className="text-gray-500 text-base mb-2 font-medium">Never miss a great deal with our automatic booking system for the lowest prices.</div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-yellow-400 text-xl">★</span>
+                    <span className="text-gray-300 text-xl">★</span>
+                    <span className="ml-2 text-gray-500 text-base font-medium">(76 travelers saved)</span>
+                  </div>
+                </div>
               </div>
             </div>
             {/* Right arrow */}
@@ -194,7 +222,7 @@ export default function Home() {
           <div className="flex-1 flex justify-center">
             <div className="rounded-3xl overflow-hidden w-[420px] h-[420px]">
               <Image
-                src="/hotel/reception.jpg" // Replace with your actual image path
+                src="/hotel/1_Hotel_ReceptionV2h1281.webp" // Replace with your actual image path
                 alt="Hotel Reception"
                 width={420}
                 height={420}

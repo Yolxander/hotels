@@ -12,7 +12,7 @@ export default function Home() {
       <Header />
       <main className="bg-[#f9f9f9] px-4">
         {/* Hero Section */}
-        <section className="relative w-full h-[600px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
+        <section className="relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
           <Image
             src="/hotel/hotel-main.jpg"
             alt="Hotel price tracking hero"
@@ -22,55 +22,55 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-            <h1 className="text-white text-4xl md:text-6xl font-bold tracking-tight text-center leading-tight drop-shadow-lg">
+            <h1 className="text-white text-3xl md:text-6xl font-bold tracking-tight text-center leading-tight drop-shadow-lg">
               Save Money <span className="text-yellow-300">After</span> You Book<br />with CocoStay
             </h1>
             {/* Search Bar */}
-            <div className="mt-8 w-full max-w-3xl flex items-center bg-white rounded-full shadow-md px-2 py-1 gap-2">
+            <div className="mt-6 md:mt-8 w-full max-w-3xl flex flex-col md:flex-row items-center bg-white rounded-2xl md:rounded-full shadow-md p-2 md:p-1 gap-2">
               {/* Location */}
-              <div className="flex items-center gap-2 px-4 py-2">
+              <div className="w-full md:w-auto flex items-center gap-2 px-4 py-2">
                 <MapPin className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base font-medium">Location</span>
+                <span className="text-gray-700 text-sm md:text-base font-medium">Location</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
-              {/* Divider */}
-              <div className="h-8 w-px bg-gray-200 mx-1" />
+              {/* Divider - Hidden on mobile */}
+              <div className="hidden md:block h-8 w-px bg-gray-200 mx-1" />
               {/* Check in - Check out */}
-              <div className="flex items-center gap-2 px-4 py-2">
+              <div className="w-full md:w-auto flex items-center gap-2 px-4 py-2">
                 <CalendarIcon className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base font-medium">Check in - Check out</span>
+                <span className="text-gray-700 text-sm md:text-base font-medium">Check in - Check out</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
-              {/* Divider */}
-              <div className="h-8 w-px bg-gray-200 mx-1" />
+              {/* Divider - Hidden on mobile */}
+              <div className="hidden md:block h-8 w-px bg-gray-200 mx-1" />
               {/* Person */}
-              <div className="flex items-center gap-2 px-4 py-2">
+              <div className="w-full md:w-auto flex items-center gap-2 px-4 py-2">
                 <UserIcon className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-700 text-base font-medium">Person</span>
+                <span className="text-gray-700 text-sm md:text-base font-medium">Person</span>
                 <ChevronDown className="h-4 w-4 text-gray-400 ml-1" />
               </div>
               {/* Search Button */}
-              <button className="ml-2 bg-yellow-300 hover:bg-yellow-400 text-black px-7 py-2 rounded-full font-bold flex items-center gap-2 transition text-base shadow-md">
+              <button className="w-full md:w-auto bg-yellow-300 hover:bg-yellow-400 text-black px-7 py-3 md:py-2 rounded-xl md:rounded-full font-bold flex items-center justify-center gap-2 transition text-base shadow-md">
                 <SearchIcon className="h-5 w-5" />
                 Search
               </button>
             </div>
             {/* Subtext & Stats */}
-            <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mt-8">
-              <div className="text-white text-base font-medium md:text-left text-center max-w-md">
+            <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mt-6 md:mt-8">
+              <div className="text-white text-sm md:text-base font-medium md:text-left text-center max-w-md px-4 md:px-0">
                 Booked a hotel? Let CocoStay track your reservation and find better deals automatically. We monitor price drops and compare offers across the web—so you never overpay again.
               </div>
-              <div className="flex gap-8 mt-4 md:mt-0 text-white text-center">
+              <div className="flex gap-6 md:gap-8 mt-4 md:mt-0 text-white text-center">
                 <div>
-                  <div className="text-3xl font-bold">24/7</div>
+                  <div className="text-2xl md:text-3xl font-bold">24/7</div>
                   <div className="text-xs opacity-80 font-medium">Price Monitoring</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">100+</div>
+                  <div className="text-2xl md:text-3xl font-bold">100+</div>
                   <div className="text-xs opacity-80 font-medium">Sites Compared</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">$1M+</div>
+                  <div className="text-2xl md:text-3xl font-bold">$1M+</div>
                   <div className="text-xs opacity-80 font-medium">Saved for Travelers</div>
                 </div>
               </div>

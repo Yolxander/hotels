@@ -1,14 +1,14 @@
 [build]
-command = "npm install --legacy-peer-deps && npm run build"
+command = "pnpm install --no-frozen-lockfile && pnpm run build"
 publish = ".next"
 
 [build.environment]
 NODE_ENV = "production"
-NPM_FLAGS = "--legacy-peer-deps"
+NPM_FLAGS = "--no-frozen-lockfile"
 node_version = "18"
 NEXT_TELEMETRY_DISABLED = "1"
 NEXT_SHARP_PATH = "/opt/buildhome/.npm-global/lib/node_modules/sharp"
-NPM_CONFIG_PACKAGE_MANAGER = "npm"
+NPM_CONFIG_PACKAGE_MANAGER = "pnpm"
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
 NEXT_TYPESCRIPT_COMPILE = "true"
 

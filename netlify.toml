@@ -1,11 +1,11 @@
 [build]
-command = "corepack enable && corepack prepare pnpm@latest --activate && pnpm install --no-frozen-lockfile && pnpm run build"
+command = "npm install -g pnpm@8 && pnpm install --no-frozen-lockfile && pnpm run build"
 publish = ".next"
 
 [build.environment]
 NODE_ENV = "production"
 NPM_FLAGS = "--no-frozen-lockfile"
-node_version = "18"
+node_version = "18.19.1"
 NEXT_TELEMETRY_DISABLED = "1"
 NEXT_SHARP_PATH = "/opt/buildhome/.npm-global/lib/node_modules/sharp"
 NPM_CONFIG_PACKAGE_MANAGER = "pnpm"

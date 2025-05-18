@@ -1,5 +1,5 @@
 [build]
-command = "npm install --legacy-peer-deps && PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm run build"
+command = "npm install --legacy-peer-deps && npm run build"
 publish = ".next"
 
 [build.environment]
@@ -10,6 +10,7 @@ NEXT_TELEMETRY_DISABLED = "1"
 NEXT_SHARP_PATH = "/opt/buildhome/.npm-global/lib/node_modules/sharp"
 NPM_CONFIG_PACKAGE_MANAGER = "npm"
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+NEXT_TYPESCRIPT_COMPILE = "true"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"

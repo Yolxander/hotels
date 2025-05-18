@@ -1,30 +1,13 @@
 [build]
-command = "pnpm install --no-frozen-lockfile && pnpm run build"
-publish = ".next"
+command = "npm ci && npm run build"
+publish = "dist"
 
 [build.environment]
-NODE_ENV = "production"
-NPM_FLAGS = "--no-frozen-lockfile"
-node_version = "18"
-NEXT_TELEMETRY_DISABLED = "1"
-NEXT_SHARP_PATH = "/opt/buildhome/.npm-global/lib/node_modules/sharp"
-NPM_CONFIG_PACKAGE_MANAGER = "pnpm"
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-NEXT_TYPESCRIPT_COMPILE = "true"
-
-[[plugins]]
-package = "@netlify/plugin-nextjs"
+NODE_ENV = "development"
+NPM_FLAGS = "--legacy-peer-deps"
+node_version = "16"
 
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
-
-[[headers]]
-  for = "/*"
-    [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"

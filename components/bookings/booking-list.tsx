@@ -8,39 +8,63 @@ import { BookingCard } from './booking-card'
 import { format } from 'date-fns'
 
 interface BookingListProps {
-  bookings: Booking[]
-  loading: boolean
+  tab?: 'active' | 'saved' | 'history'
 }
 
-export function BookingList({ bookings, loading }: BookingListProps) {
+export function BookingList({ tab = 'active' }: BookingListProps) {
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (!user) return
+
+    const fetchBookings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+        setBookings(data || [])
+      } catch (error) {
+        console.error('Error fetching bookings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [user])
+
+  const filteredBookings = bookings.filter(booking => {
+    if (tab === 'active') return true
+    if (tab === 'saved') return booking.savings > 0
+    if (tab === 'history') return false // You can implement history logic here
+    return true
+  })
+
   if (loading) {
-    return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm animate-pulse">
-            <div className="h-48 bg-gray-200"></div>
-            <div className="p-6 space-y-4">
-              <div className="h-6 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    )
+    return <div>Loading bookings...</div>
   }
 
-  if (bookings.length === 0) {
+  if (filteredBookings.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <p>No bookings found.</p>
+        <p>
+          {tab === 'active' && 'No active bookings found.'}
+          {tab === 'saved' && 'No price drops found.'}
+          {tab === 'history' && 'No booking history found.'}
+        </p>
       </div>
     )
   }
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {bookings.map((booking) => (
+      {filteredBookings.map((booking) => (
         <BookingCard
           key={booking.id}
           hotel={booking.hotel_name}

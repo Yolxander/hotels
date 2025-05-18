@@ -176,43 +176,41 @@ export default function DashboardPage() {
           {loadingStep === 'idle' ? (
             <>
               <DialogHeader>
-                <DialogTitle className="text-xl md:text-2xl">Track a New Hotel Booking</DialogTitle>
-                <DialogDescription className="text-sm md:text-base">Enter the details of your hotel booking to start tracking price changes.</DialogDescription>
+                <DialogTitle>Track a New Hotel Booking</DialogTitle>
+                <DialogDescription>Enter the details of your hotel booking to start tracking price changes.</DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 md:space-y-6 py-4">
+              <div className="space-y-6 py-4">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="hotel-name" className="text-sm md:text-base">Hotel Name*</Label>
+                    <Label htmlFor="hotel-name">Hotel Name*</Label>
                     <Input
                       id="hotel-name"
                       placeholder="e.g. Hilton Garden Inn"
                       value={formData.hotel_name}
                       onChange={(e) => handleInputChange("hotel_name", e.target.value)}
-                      className="text-sm md:text-base"
                     />
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="location" className="text-sm md:text-base">Location*</Label>
+                    <Label htmlFor="location">Location*</Label>
                     <Input
                       id="location"
                       placeholder="e.g. Tokyo, Japan"
                       value={formData.location}
                       onChange={(e) => handleInputChange("location", e.target.value)}
-                      className="text-sm md:text-base"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="check-in" className="text-sm md:text-base">Check-in Date*</Label>
+                      <Label htmlFor="check-in">Check-in Date*</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal text-sm md:text-base",
+                              "w-full justify-start text-left font-normal",
                               !formData.check_in_date && "text-muted-foreground",
                             )}
                           >
@@ -232,13 +230,13 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="check-out" className="text-sm md:text-base">Check-out Date*</Label>
+                      <Label htmlFor="check-out">Check-out Date*</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal text-sm md:text-base",
+                              "w-full justify-start text-left font-normal",
                               !formData.check_out_date && "text-muted-foreground",
                             )}
                           >
@@ -259,94 +257,115 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="price" className="text-sm md:text-base">Original Price*</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="e.g. 299.99"
-                      value={formData.original_price}
-                      onChange={(e) => handleInputChange("original_price", e.target.value)}
-                      className="text-sm md:text-base"
-                    />
+                    <Label htmlFor="price">Original Price*</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <Input
+                        id="price"
+                        type="number"
+                        className="pl-7"
+                        placeholder="e.g. 450"
+                        value={formData.original_price}
+                        onChange={(e) => handleInputChange("original_price", e.target.value)}
+                      />
+                    </div>
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="room-type" className="text-sm md:text-base">Room Type*</Label>
+                    <Label htmlFor="room-type">Room Type*</Label>
                     <Input
                       id="room-type"
-                      placeholder="e.g. Deluxe King Room"
+                      placeholder="e.g. Standard Room"
                       value={formData.room_type}
                       onChange={(e) => handleInputChange("room_type", e.target.value)}
-                      className="text-sm md:text-base"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="w-full sm:w-auto text-sm md:text-base"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  className="w-full sm:w-auto text-sm md:text-base"
-                >
-                  Start Tracking
+              <div className="flex justify-end">
+                <Button onClick={handleSubmit} disabled={loading}>
+                  {loading ? 'Saving...' : 'Start Tracking'}
                 </Button>
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
               {loadingStep === 'setting-up' && (
-                <>
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                  <p className="text-lg font-medium">Setting up your tracker...</p>
-                </>
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-300 mb-4"></div>
+                  <p className="text-lg font-medium">Setting up...</p>
+                </div>
               )}
               {loadingStep === 'finalizing' && (
-                <>
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                  <p className="text-lg font-medium">Finalizing your setup...</p>
-                </>
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-300 mb-4"></div>
+                  <p className="text-lg font-medium">Finalizing...</p>
+                </div>
               )}
               {loadingStep === 'completed' && (
-                <>
-                  <CheckCircle2 className="h-12 w-12 text-green-500" />
-                  <p className="text-lg font-medium">Setup completed!</p>
-                </>
+                <div className="text-center">
+                  <CheckCircle2 className="h-12 w-12 text-yellow-300 mb-4" />
+                  <p className="text-lg font-medium">Finalized!</p>
+                </div>
               )}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      <main className="container mx-auto px-4 py-6 md:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column - Summary Cards */}
-          <div className="md:col-span-1 space-y-6">
-            <DashboardSummary
-              activeTrackers={activeTrackers}
-              priceDrops={priceDrops}
-              totalSavings={bookings.reduce((sum, booking) => sum + booking.savings, 0)}
-            />
+      <main>
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 relative rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 z-10 bg-black/50"></div>
+              <Image
+                src="/hotel/Lindos-Grand-Resort-pool_bu.jpg?height=600&width=1000"
+                alt="Luxury hotel room"
+                width={1000}
+                height={1000}
+                className="w-full h-[600px] object-cover"
+              />
+
+              <div className="absolute bottom-16 left-16 z-20">
+                <h1 className="text-5xl font-light text-white leading-tight">
+                  Your <span className="italic font-normal text-yellow-300">Savings</span>
+                  <br />
+                  Dashboard
+                </h1>
+              </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <DashboardSummary onTrackNewHotel={() => {
+                setIsDialogOpen(true)
+              }} />
+            </div>
           </div>
 
-          {/* Right Column - Bookings List */}
-          <div className="md:col-span-2">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold">Your Bookings</h2>
-              <Button
-                onClick={() => setIsDialogOpen(true)}
-                className="w-full sm:w-auto text-sm md:text-base"
-              >
-                Track New Booking
-              </Button>
-            </div>
-            <BookingList bookings={bookings} loading={loading} />
+          <div className="mt-8">
+            <Tabs defaultValue="active" className="w-full">
+              <TabsList className="bg-white rounded-full p-1 border">
+                <TabsTrigger value="active" className="rounded-full">
+                  Active Trackers ({activeTrackers})
+                </TabsTrigger>
+                <TabsTrigger value="saved" className="rounded-full">
+                  Price Drops ({priceDrops})
+                </TabsTrigger>
+                <TabsTrigger value="history" className="rounded-full">
+                  History
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="active" className="mt-6">
+                <BookingList tab="active" />
+              </TabsContent>
+              <TabsContent value="saved" className="mt-6">
+                <BookingList tab="saved" />
+              </TabsContent>
+              <TabsContent value="history" className="mt-6">
+                <BookingList tab="history" />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>

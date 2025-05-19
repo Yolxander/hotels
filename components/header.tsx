@@ -38,14 +38,12 @@ export function Header() {
         <div className="hidden md:flex items-center space-x-2">
           {user ? (
             <>
-              {/* Track Hotel link commented out
               <Button variant="ghost" size="sm" className="rounded-full" asChild>
                 <Link href="/tracker">
                   <Search className="h-4 w-4 mr-2" />
                   Track Hotel
                 </Link>
               </Button>
-              */}
               <Button className="rounded-full bg-black text-white hover:bg-gray-800" asChild>
                 <Link href={isDashboard ? "/" : "/dashboard"}>
                   {isDashboard ? "Home" : "Go to Dashboard"}
@@ -85,14 +83,12 @@ export function Header() {
           <div className="container px-4 py-4 space-y-4">
             {user ? (
               <>
-                {/* Track Hotel link commented out
                 <Button variant="ghost" className="w-full justify-start" asChild>
                   <Link href="/tracker" className="flex items-center">
                     <Search className="h-4 w-4 mr-2" />
                     Track Hotel
                   </Link>
                 </Button>
-                */}
                 <Button className="w-full justify-start bg-black text-white hover:bg-gray-800" asChild>
                   <Link href={isDashboard ? "/" : "/dashboard"}>
                     {isDashboard ? "Home" : "Go to Dashboard"}

@@ -14,16 +14,36 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-features=IsolateOrigins,site-per-process',
-        '--disable-site-isolation-trials'
+        '--disable-site-isolation-trials',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
       ]
     });
+    
     const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      viewport: { width: 1920, height: 1080 },
+      deviceScaleFactor: 1,
+      isMobile: false,
+      hasTouch: false
     });
+
+    // Add additional headers to appear more like a regular browser
+    await context.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    });
+
     const page = await wrap(await context.newPage());
 
     // Navigate to Google
-    await page.goto('https://www.google.com');
+    await page.goto('https://www.google.com', { waitUntil: 'networkidle' });
 
     // Wait for the search textarea to be ready
     await page.waitForSelector('textarea[name="q"]');
@@ -32,7 +52,7 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
     await page.fill('textarea[name="q"]', destination);
     await page.press('textarea[name="q"]', 'Enter');
 
-    // Wait for search results
+    // Wait for search results and handle any potential sign-in prompts
     await page.waitForTimeout(3000);
 
     // Click the "Check availability" button
@@ -44,31 +64,57 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
     // Wait for the new page to load
     await page.waitForTimeout(3000);
 
-    // Define query for room listings
-    const QUERY = `
-    {
-      room_listings[] {
-        room_type
-        price
-        cancellation_policy
-        total_price
-      }
-    }`;
+    // Update check-in date using the exact selector
+    const checkInInput = await page.waitForSelector('#prices > c-wiz.K1smNd > c-wiz.tuyxUe > div > section > div.LEPXne > div.w1RZXe.sgtnuf.abhqy.nIkIJf.WzEC0e.FwR7Pc.K6nYpf > div > div.Ryi7tc.pI31md.hh3Grb > div:nth-child(2) > div > input');
+    if (checkInInput) {
+      await checkInInput.click();
+      await checkInInput.fill(''); // Clear the input first
+      await checkInInput.fill('May 20');
+      await checkInInput.press('Enter');
+    }
 
-    // Get room data
-    const roomData = await page.queryData(QUERY);
-    console.log('Room data:', JSON.stringify(roomData, null, 2));
+    // Click the Done button after check-in date
+    const doneButton = await page.waitForSelector('button.VfPpkd-LgbsSe-OWXEXe-k8QpJ[jsname="iib5kc"]');
+    if (doneButton) {
+      await doneButton.click();
+    }
 
-    // Also get the raw HTML of room listings for verification
+    // Wait a bit for the date picker to close
+    await page.waitForTimeout(1000);
+
+    // Update check-out date using the exact selector
+    const checkOutInput = await page.waitForSelector('#ow12 > div > div.Ryi7tc.pI31md.hh3Grb > div:nth-child(4) > div > input');
+    if (checkOutInput) {
+      await checkOutInput.click();
+      await checkOutInput.fill(''); // Clear the input first
+      await checkOutInput.fill('May 27');
+      await checkOutInput.press('Enter');
+    }
+
+    // Click the Done button after check-out date
+    const doneButton2 = await page.waitForSelector('button.VfPpkd-LgbsSe-OWXEXe-k8QpJ[jsname="iib5kc"]');
+    if (doneButton2) {
+      await doneButton2.click();
+    }
+
+    // Wait for results to load
+    await page.waitForTimeout(3000);
+
+    // Get room listings with booking URLs
     const roomListings = await page.evaluate(() => {
-      const listings = document.querySelectorAll('a.gw2Gcf');
-      return Array.from(listings).map(listing => ({
-        roomType: listing.querySelector('.rd5XM')?.textContent || '',
-        cancellationPolicy: listing.querySelector('.WL9xgc')?.textContent?.trim() || '',
-        price: listing.querySelector('.iqYCVb')?.textContent || '',
-        originalPrice: listing.querySelector('.MW1oTb')?.textContent || '',
-        totalPrice: listing.querySelector('.UeIHqb')?.textContent || ''
-      }));
+      const listings = document.querySelectorAll('div.zIL9xf.xIAdxb');
+      return Array.from(listings).map(listing => {
+        const visitButton = listing.querySelector('button[jsname="Nu1Wwd"]');
+        const bookingUrl = visitButton?.closest('a')?.href || '';
+        
+        return {
+          provider: listing.querySelector('.FjC1We')?.textContent || '',
+          price: listing.querySelector('.nDkDDb')?.textContent || '',
+          totalPrice: listing.querySelector('.UeIHqb')?.textContent || '',
+          cancellationPolicy: listing.querySelector('.niTXmc')?.textContent || '',
+          bookingUrl: bookingUrl
+        };
+      });
     });
 
     console.log('Room listings:', JSON.stringify(roomListings, null, 2));

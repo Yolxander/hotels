@@ -1,7 +1,7 @@
 const { wrap, configure } = require('agentql');
 const { chromium } = require('playwright');
 
-async function main(destination = 'Casa de Campo Resort and Villas, La Romana, La Romana, Dominican Republic') {
+async function main(destination, checkInDate, checkOutDate) {
   try {
     // Configure AgentQL
     configure({
@@ -69,7 +69,7 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
     if (checkInInput) {
       await checkInInput.click();
       await checkInInput.fill(''); // Clear the input first
-      await checkInInput.fill('May 20');
+      await checkInInput.fill(checkInDate);
       await checkInInput.press('Enter');
     }
 
@@ -87,7 +87,7 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
     if (checkOutInput) {
       await checkOutInput.click();
       await checkOutInput.fill(''); // Clear the input first
-      await checkOutInput.fill('May 27');
+      await checkOutInput.fill(checkOutDate);
       await checkOutInput.press('Enter');
     }
 
@@ -117,14 +117,13 @@ async function main(destination = 'Casa de Campo Resort and Villas, La Romana, L
       });
     });
 
-    console.log('Room listings:', JSON.stringify(roomListings, null, 2));
-
     await browser.close();
+    return roomListings;
   } catch (error) {
     console.error('Error:', error);
+    return [];
   }
 }
 
-// Get destination from command line argument or use default
-const destination = process.argv[2] || 'Casa de Campo Resort and Villas, La Romana, La Romana, Dominican Republic';
-main(destination); 
+// Export the main function
+module.exports = main; 

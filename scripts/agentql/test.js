@@ -55,46 +55,79 @@ async function main(destination, checkInDate, checkOutDate) {
     // Wait for search results and handle any potential sign-in prompts
     await page.waitForTimeout(3000);
 
-    // Click the "Check availability" button
-    const checkAvailabilityButton = await page.getByText('Check availability');
-    if (checkAvailabilityButton) {
-      await checkAvailabilityButton.click();
+    // Try to find and click the "Check availability" button with more specific selectors
+    try {
+      // Wait for the Google Hotels card to be visible
+      await page.waitForSelector('div[data-ved*="2ahUKEw"]', { timeout: 5000 });
+      
+      // Find the specific "Check availability" button within the Google Hotels card
+      const checkAvailabilityButton = await page.waitForSelector('div[data-ved*="2ahUKEw"] a[data-target-url*="/travel/search"]', { timeout: 5000 });
+      
+      if (checkAvailabilityButton) {
+        console.log('Found Google Hotels check availability button');
+        await checkAvailabilityButton.click();
+      } else {
+        console.log('Could not find Google Hotels check availability button, trying alternative...');
+        // Fallback to the generic button if the specific one isn't found
+        const genericButton = await page.waitForSelector('a[data-target-url*="/travel/search"]', { timeout: 5000 });
+        if (genericButton) {
+          await genericButton.click();
+        }
+      }
+    } catch (error) {
+      console.log('Could not find check availability button, continuing with search...');
     }
 
     // Wait for the new page to load
     await page.waitForTimeout(3000);
 
     // Update check-in date using the exact selector
-    const checkInInput = await page.waitForSelector('#prices > c-wiz.K1smNd > c-wiz.tuyxUe > div > section > div.LEPXne > div.w1RZXe.sgtnuf.abhqy.nIkIJf.WzEC0e.FwR7Pc.K6nYpf > div > div.Ryi7tc.pI31md.hh3Grb > div:nth-child(2) > div > input');
-    if (checkInInput) {
-      await checkInInput.click();
-      await checkInInput.fill(''); // Clear the input first
-      await checkInInput.fill(checkInDate);
-      await checkInInput.press('Enter');
+    try {
+      const checkInInput = await page.waitForSelector('input[placeholder*="Check-in"], input[placeholder*="Check in"]', { timeout: 5000 });
+      if (checkInInput) {
+        await checkInInput.click();
+        await checkInInput.fill(''); // Clear the input first
+        await checkInInput.fill(checkInDate);
+        await checkInInput.press('Enter');
+      }
+    } catch (error) {
+      console.log('Could not find check-in input, continuing...');
     }
 
     // Click the Done button after check-in date
-    const doneButton = await page.waitForSelector('button.VfPpkd-LgbsSe-OWXEXe-k8QpJ[jsname="iib5kc"]');
-    if (doneButton) {
-      await doneButton.click();
+    try {
+      const doneButton = await page.waitForSelector('button:has-text("Done"), button[aria-label="Done"]', { timeout: 5000 });
+      if (doneButton) {
+        await doneButton.click();
+      }
+    } catch (error) {
+      console.log('Could not find done button, continuing...');
     }
 
     // Wait a bit for the date picker to close
     await page.waitForTimeout(1000);
 
     // Update check-out date using the exact selector
-    const checkOutInput = await page.waitForSelector('#ow12 > div > div.Ryi7tc.pI31md.hh3Grb > div:nth-child(4) > div > input');
-    if (checkOutInput) {
-      await checkOutInput.click();
-      await checkOutInput.fill(''); // Clear the input first
-      await checkOutInput.fill(checkOutDate);
-      await checkOutInput.press('Enter');
+    try {
+      const checkOutInput = await page.waitForSelector('input[placeholder*="Check-out"], input[placeholder*="Check out"]', { timeout: 5000 });
+      if (checkOutInput) {
+        await checkOutInput.click();
+        await checkOutInput.fill(''); // Clear the input first
+        await checkOutInput.fill(checkOutDate);
+        await checkOutInput.press('Enter');
+      }
+    } catch (error) {
+      console.log('Could not find check-out input, continuing...');
     }
 
     // Click the Done button after check-out date
-    const doneButton2 = await page.waitForSelector('button.VfPpkd-LgbsSe-OWXEXe-k8QpJ[jsname="iib5kc"]');
-    if (doneButton2) {
-      await doneButton2.click();
+    try {
+      const doneButton2 = await page.waitForSelector('button:has-text("Done"), button[aria-label="Done"]', { timeout: 5000 });
+      if (doneButton2) {
+        await doneButton2.click();
+      }
+    } catch (error) {
+      console.log('Could not find done button, continuing...');
     }
 
     // Wait for results to load
@@ -102,19 +135,43 @@ async function main(destination, checkInDate, checkOutDate) {
 
     // Get room listings with booking URLs
     const roomListings = await page.evaluate(() => {
-      const listings = document.querySelectorAll('div.zIL9xf.xIAdxb');
-      return Array.from(listings).map(listing => {
-        const visitButton = listing.querySelector('button[jsname="Nu1Wwd"]');
-        const bookingUrl = visitButton?.closest('a')?.href || '';
+      const listings = [];
+      
+      // Find all provider sections (Hotels.com, Booking.com, etc.)
+      const providerSections = document.querySelectorAll('div[class*="CcERhd"]');
+      
+      providerSections.forEach(section => {
+        // Get provider name
+        const providerName = section.querySelector('[class*="FjC1We"]')?.textContent?.trim() || '';
         
-        return {
-          provider: listing.querySelector('.FjC1We')?.textContent || '',
-          price: listing.querySelector('.nDkDDb')?.textContent || '',
-          totalPrice: listing.querySelector('.UeIHqb')?.textContent || '',
-          cancellationPolicy: listing.querySelector('.niTXmc')?.textContent || '',
-          bookingUrl: bookingUrl
-        };
+        // Get all room listings within this provider section
+        const roomElements = section.querySelectorAll('a[class*="gkynWe"]');
+        
+        roomElements.forEach(room => {
+          const roomType = room.querySelector('[class*="EI1JTd"]')?.textContent?.trim() || '';
+          const features = Array.from(room.querySelectorAll('[class*="niTXmc"] span'))
+            .map(feature => feature.textContent?.trim())
+            .filter(Boolean);
+          
+          const priceElement = room.querySelector('[class*="nDkDDb"]');
+          const totalPriceElement = room.querySelector('[class*="MW1oTb"]');
+          
+          const bookingUrl = room.href || '';
+          
+          if (roomType && (priceElement || totalPriceElement)) {
+            listings.push({
+              provider: providerName,
+              roomType: roomType,
+              features: features,
+              basePrice: priceElement?.textContent?.trim() || '',
+              totalPrice: totalPriceElement?.textContent?.trim() || '',
+              bookingUrl: bookingUrl
+            });
+          }
+        });
       });
+      
+      return listings;
     });
 
     await browser.close();

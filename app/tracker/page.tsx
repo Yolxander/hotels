@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface RoomListing {
   provider: string;
@@ -17,11 +19,13 @@ export default function TrackerPage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<RoomListing[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [destination, setDestination] = useState("Casa de Campo Resort and Villas, La Romana, La Romana, Dominican Republic");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setResults([]);
 
     try {
       const response = await fetch('/api/hotel-search', {
@@ -30,21 +34,26 @@ export default function TrackerPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          destination: "Casa de Campo Resort and Villas, La Romana, La Romana, Dominican Republic",
+          destination,
           checkInDate: "May 20",
           checkOutDate: "May 27"
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to search for hotels');
+        throw new Error(data.error || 'Failed to search for hotels');
       }
 
-      const data = await response.json();
+      if (data.results.length === 0) {
+        setError('No results found for this destination. Please try a different hotel or location.');
+        return;
+      }
+
       setResults(data.results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred while searching for hotels. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,8 +68,10 @@ export default function TrackerPage() {
           <div>
             <label className="text-sm font-medium">Destination</label>
             <Input 
-              value="Casa de Campo Resort and Villas, La Romana, La Romana, Dominican Republic"
-              readOnly
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              placeholder="Enter hotel or destination"
+              disabled={loading}
             />
           </div>
           <div>
@@ -68,6 +79,7 @@ export default function TrackerPage() {
             <Input 
               value="May 20, 2025"
               readOnly
+              disabled={loading}
             />
           </div>
           <div>
@@ -75,6 +87,7 @@ export default function TrackerPage() {
             <Input 
               value="May 27, 2025"
               readOnly
+              disabled={loading}
             />
           </div>
           <div>
@@ -82,21 +95,36 @@ export default function TrackerPage() {
             <Input 
               value="2 travellers, 1 room"
               readOnly
+              disabled={loading}
             />
           </div>
         </div>
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? 'Searching...' : 'Search Hotel'}
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Searching...
+            </>
+          ) : (
+            'Search Hotel'
+          )}
         </Button>
       </form>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {error}
+        <Alert variant="destructive" className="mt-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {loading && (
+        <div className="mt-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="mt-2 text-gray-600">Searching for hotels...</p>
         </div>
       )}
 
-      {results.length > 0 && (
+      {!loading && results.length > 0 && (
         <div className="mt-8 space-y-4">
           <h2 className="text-xl font-semibold">Available Rooms</h2>
           {results.map((listing, index) => (

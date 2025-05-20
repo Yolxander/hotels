@@ -14,6 +14,7 @@ interface BookingCardProps {
   currentPrice: number
   savings: number
   image: string
+  onRebookNow: () => void
 }
 
 export function BookingCard({
@@ -24,6 +25,7 @@ export function BookingCard({
   currentPrice,
   savings,
   image,
+  onRebookNow
 }: BookingCardProps) {
   const hasSavings = savings > 0
 
@@ -31,7 +33,7 @@ export function BookingCard({
     <Card className="overflow-hidden rounded-3xl">
       <div className="relative h-48">
         <img src={image || "/placeholder.svg"} alt={hotel} className="w-full h-full object-cover" />
-        {hasSavings && <Badge className="absolute top-3 right-3 bg-yellow-300 text-black">Price Drop!</Badge>}
+        {hasSavings && <Badge className="absolute top-3 right-3 bg-green-500">Price Drop!</Badge>}
       </div>
       <CardHeader>
         <CardTitle>{hotel}</CardTitle>
@@ -54,19 +56,19 @@ export function BookingCard({
           </div>
         </div>
 
-        <div className="pt-2 border-t">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-sm text-gray-500">Original Price</div>
-              <div className="font-semibold">${originalPrice}</div>
-            </div>    
-            <div>
-              <div className="text-sm text-gray-500">Current Price</div>
-              <div className={`font-semibold ${hasSavings ? "underline decoration-4 decoration-yellow-300" : ""}`}>${currentPrice}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-500">Savings</div>
-              <div className={`font-semibold ${hasSavings ? "underline decoration-4 decoration-yellow-300" : ""}`}>${savings}</div>
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <div className="text-sm text-gray-500">Original Price</div>
+            <div className="text-lg font-semibold">${originalPrice}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Current Price</div>
+            <div className="text-lg font-semibold">${currentPrice}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Savings</div>
+            <div className={`text-lg font-semibold ${hasSavings ? 'text-green-600' : ''}`}>
+              ${savings}
             </div>
           </div>
         </div>
@@ -85,17 +87,9 @@ export function BookingCard({
           <Mail className="h-4 w-4 mr-2" />
           Email Updates
         </Button>
-        {hasSavings ? (
-          <Button size="sm" className="rounded-full">
-            <Percent className="h-4 w-4 mr-2" />
-            Rebook Now
-          </Button>
-        ) : (
-          <Button variant="secondary" size="sm" className="rounded-full">
-            <Bell className="h-4 w-4 mr-2" />
-            Notify Me
-          </Button>
-        )}
+        <Button onClick={onRebookNow} className="rounded-full">
+          Rebook Now
+        </Button>
       </CardFooter>
     </Card>
   )

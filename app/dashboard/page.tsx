@@ -20,6 +20,7 @@ import {
   Bed,
   CreditCard,
   FileText,
+  Loader2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -41,12 +42,17 @@ import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Booking } from '@/app/types/booking'
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function DashboardPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isRebookModalOpen, setIsRebookModalOpen] = useState(false)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingStep, setLoadingStep] = useState<'idle' | 'setting-up' | 'finalizing' | 'completed'>('idle')
+  const [scrapingResults, setScrapingResults] = useState<any[]>([])
+  const [scrapingError, setScrapingError] = useState<string | null>(null)
+  const [scrapingLoading, setScrapingLoading] = useState(false)
   const { user } = useAuth()
   const [formData, setFormData] = useState({
     hotel_name: "",
@@ -86,21 +92,224 @@ export default function DashboardPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const findRoomListings = async (formData: any) => {
+    console.log('=== findRoomListings START ===');
+    console.log('Input formData:', formData);
+    
+    try {
+      setScrapingLoading(true);
+      setScrapingError(null);
+      setScrapingResults([]);
+
+      const requestBody = {
+        destination: formData.hotel_name,
+        checkInDate: format(formData.check_in_date, 'yyyy-MM-dd'),
+        checkOutDate: format(formData.check_out_date, 'yyyy-MM-dd'),
+        originalPrice: parseFloat(formData.original_price)
+      };
+
+      console.log('Making API request to /api/scrape with params:', requestBody);
+
+      const response = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('API Response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('API response not OK:', response.status, response.statusText);
+        throw new Error('Failed to fetch hotel prices');
+      }
+
+      const data = await response.json();
+      console.log('Raw API Response:', data);
+
+      if (!data || !data.rawData) {
+        console.error('Invalid API response format:', data);
+        throw new Error('Invalid response format from scraper');
+      }
+
+      // Check if the response is an empty array
+      if (data.rawData === '[]') {
+        console.log('Scraper returned empty results');
+        setScrapingError('No room listings found for these dates. This could be because:\n1. The hotel is fully booked\n2. The dates are too far in advance\n3. The hotel is not available on these dates\n\nPlease try different dates or check back later.');
+        return [];
+      }
+
+      // Extract the JSON array from the raw data
+      const jsonMatch = data.rawData.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        console.error('No JSON array found in raw data:', data.rawData);
+        throw new Error('No valid data found in scraper response');
+      }
+
+      console.log('Found JSON array in raw data, length:', jsonMatch[0].length);
+      console.log('First 100 characters of JSON array:', jsonMatch[0].substring(0, 100));
+
+      // Split the array into individual items and filter out truncated ones
+      const items = jsonMatch[0]
+        .slice(1, -1) // Remove the outer []
+        .split('},')
+        .map((item: string) => item.trim())
+        .filter((item: string) => {
+          // Check if the item has all required fields and is properly formatted
+          const hasRequiredFields = 
+            item.includes('"provider"') &&
+            item.includes('"roomType"') &&
+            item.includes('"features"') &&
+            item.includes('"basePrice"') &&
+            item.includes('"totalPrice"') &&
+            item.includes('"bookingUrl"');
+          
+          // Check if the item ends with a closing brace or has a proper structure
+          const hasProperEnding = item.endsWith('}') || item.includes('"bookingUrl"');
+          
+          const isValid = hasRequiredFields && hasProperEnding;
+          
+          if (!isValid) {
+            console.log('Filtered out invalid item:', item);
+          }
+          return isValid;
+        })
+        .map((item: string) => {
+          // Add back the closing brace if it's missing
+          return item.endsWith('}') ? item : item + '}';
+        });
+
+      console.log(`Found ${items.length} valid room listings`);
+
+      if (items.length === 0) {
+        console.log('No valid items found after filtering');
+        setScrapingError('No valid room listings found. This could be because:\n1. The hotel is fully booked\n2. The dates are too far in advance\n3. The hotel is not available on these dates\n\nPlease try different dates or check back later.');
+        return [];
+      }
+
+      // Reconstruct the JSON array
+      const validJsonArray = '[' + items.join(',') + ']';
+      console.log('Reconstructed JSON array length:', validJsonArray.length);
+
+      try {
+        // Parse the JSON data
+        const results = JSON.parse(validJsonArray);
+        console.log('Successfully parsed JSON, found', results.length, 'results');
+
+        // Clean up the results
+        const cleanedResults = results
+          .map((result: any) => {
+            try {
+              // Extract numeric value from price string (remove $ and commas)
+              const basePrice = parseFloat(result.basePrice.replace(/[$,]/g, ''));
+              const totalPrice = parseFloat(result.totalPrice.replace(/[$,]/g, ''));
+              
+              // Clean up features array
+              const cleanFeatures = result.features
+                .filter((f: string) => f !== ',' && f !== '·')
+                .map((f: string) => f.trim())
+                .filter((f: string) => f.length > 0);
+
+              const cleaned = {
+                provider: result.provider,
+                roomType: result.roomType,
+                features: cleanFeatures,
+                basePrice: result.basePrice,
+                totalPrice: result.totalPrice,
+                bookingUrl: result.bookingUrl,
+                basePriceValue: basePrice,
+                totalPriceValue: totalPrice
+              };
+
+              console.log('Cleaned room listing:', cleaned);
+              return cleaned;
+            } catch (error) {
+              console.error('Error cleaning room listing:', error, result);
+              return null;
+            }
+          })
+          .filter((result: any) => result !== null)
+          .filter((result: any) => {
+            const originalPrice = parseFloat(formData.original_price);
+            const isCheaper = result.totalPriceValue < originalPrice;
+            if (!isCheaper) {
+              console.log(`Filtered out expensive room: ${result.roomType} ($${result.totalPriceValue} > $${originalPrice})`);
+            }
+            return isCheaper;
+          })
+          .sort((a: any, b: any) => {
+            return a.totalPriceValue - b.totalPriceValue;
+          });
+
+        console.log(`Found ${cleanedResults.length} rooms cheaper than original price of $${formData.original_price}`);
+
+        if (cleanedResults.length === 0) {
+          console.log('No cheaper rooms found, setting error message');
+          setScrapingError('No rooms found that are cheaper than your original booking. Please check back later for better deals.');
+          return [];
+        }
+
+        // Save results to local storage
+        const cacheKey = `room_listings_${formData.hotel_name}_${format(formData.check_in_date, 'yyyy-MM-dd')}_${format(formData.check_out_date, 'yyyy-MM-dd')}`;
+        localStorage.setItem(cacheKey, JSON.stringify(cleanedResults));
+
+        console.log('Saved results to local storage with key:', cacheKey);
+        console.log('Final cleaned results:', cleanedResults);
+
+        setScrapingResults(cleanedResults);
+        return cleanedResults;
+      } catch (error) {
+        console.error('Error parsing or processing JSON:', error);
+        throw new Error('Failed to process room listings data');
+      }
+    } catch (error) {
+      console.error('Error in findRoomListings:', error);
+      setScrapingError(error instanceof Error ? error.message : 'Failed to fetch hotel prices');
+      return [];
+    } finally {
+      setScrapingLoading(false);
+      console.log('=== findRoomListings END ===');
+    }
+  };
+
   const handleSubmit = async () => {
+    console.log('=== handleSubmit START ===');
+    console.log('Form data:', formData);
+    
     if (!user) {
+      console.log('No user found, returning');
       alert('You must be logged in to track a booking')
       return
     }
 
     // Validate required fields
     if (!formData.hotel_name || !formData.location || !formData.check_in_date || !formData.check_out_date || !formData.original_price || !formData.room_type) {
+      console.log('Missing required fields:', {
+        hotel_name: !formData.hotel_name,
+        location: !formData.location,
+        check_in_date: !formData.check_in_date,
+        check_out_date: !formData.check_out_date,
+        original_price: !formData.original_price,
+        room_type: !formData.room_type
+      });
       alert('Please fill in all required fields')
       return
     }
 
     setLoadingStep('setting-up')
+    setScrapingLoading(true)
+    setScrapingError(null)
+
     try {
-      const { error } = await supabase
+      // Find room listings first
+      console.log('Calling findRoomListings...');
+      const roomListings = await findRoomListings(formData);
+      console.log('findRoomListings returned:', roomListings);
+
+      // Save the booking to the database
+      console.log('Saving booking to database...');
+      const { data: bookingData, error: bookingError } = await supabase
         .from('bookings')
         .insert([
           {
@@ -116,21 +325,47 @@ export default function DashboardPage() {
             image_url: '/placeholder.svg?height=200&width=400'
           }
         ])
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
+      if (bookingError) {
+        console.error('Supabase error:', bookingError)
+        throw bookingError
+      }
+
+      console.log('Booking saved successfully:', bookingData);
+
+      // Save room listings to the database
+      if (roomListings && roomListings.length > 0) {
+        console.log('Saving room listings to database:', roomListings);
+        const { error: listingsError } = await supabase
+          .from('room_listings')
+          .insert(
+            roomListings.map((listing: any) => ({
+              booking_id: bookingData.id,
+              provider: listing.provider,
+              room_type: listing.roomType,
+              features: listing.features,
+              base_price: listing.basePriceValue,
+              total_price: listing.totalPriceValue,
+              booking_url: listing.bookingUrl,
+              created_at: new Date().toISOString()
+            }))
+          );
+
+        if (listingsError) {
+          console.error('Error saving room listings:', listingsError);
+        } else {
+          console.log('Successfully saved room listings to database');
+        }
       }
 
       setLoadingStep('finalizing')
-      // Simulate a delay for the finalizing step
       await new Promise(resolve => setTimeout(resolve, 1500))
       
       setLoadingStep('completed')
-      // Wait a moment before closing and reloading
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Close dialog and reset form
       setIsDialogOpen(false)
       setFormData({
         hotel_name: "",
@@ -141,16 +376,61 @@ export default function DashboardPage() {
         room_type: "",
       })
 
-      // Refresh the bookings data
       await fetchBookings()
-      window.location.reload()
+      // window.location.reload()
     } catch (error) {
-      console.error('Error saving booking:', error)
-      alert('Error saving booking. Please try again.')
+      console.error('Error in handleSubmit:', error)
+      setScrapingError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoadingStep('idle')
+      setScrapingLoading(false)
+      console.log('=== handleSubmit END ===');
     }
   }
+
+  const handleRebookNow = async (booking: Booking) => {
+    try {
+      setScrapingLoading(true);
+      setScrapingError(null);
+      setScrapingResults([]);
+      setIsRebookModalOpen(true);
+
+      // Fetch room listings from database
+      const { data: roomListings, error: dbError } = await supabase
+        .from('room_listings')
+        .select('*')
+        .eq('booking_id', booking.id)
+        .order('total_price', { ascending: true });
+
+      if (dbError) {
+        throw new Error('Failed to fetch room listings from database');
+      }
+
+      if (!roomListings || roomListings.length === 0) {
+        setScrapingError('No room listings found for this booking. Please try again later.');
+        return;
+      }
+
+      // Format the listings for display
+      const formattedListings = roomListings.map((listing: any) => ({
+        provider: listing.provider,
+        roomType: listing.room_type,
+        features: listing.features,
+        basePrice: `$${listing.base_price}`,
+        totalPrice: `$${listing.total_price}`,
+        bookingUrl: listing.booking_url,
+        basePriceValue: listing.base_price,
+        totalPriceValue: listing.total_price
+      }));
+
+      setScrapingResults(formattedListings);
+    } catch (error) {
+      console.error('Error fetching room listings:', error);
+      setScrapingError(error instanceof Error ? error.message : 'Failed to fetch room listings');
+    } finally {
+      setScrapingLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f9f9f9]">
@@ -314,6 +594,57 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={isRebookModalOpen} onOpenChange={setIsRebookModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Available Deals</DialogTitle>
+            <DialogDescription>Here are the best available prices for your dates</DialogDescription>
+          </DialogHeader>
+
+          {scrapingLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <p>Searching for the best deals...</p>
+            </div>
+          ) : scrapingError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{scrapingError}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              {scrapingResults.slice(0, 5).map((result, index) => (
+                <Card key={index}>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between">
+                      <span>{result.provider}</span>
+                      <span className="text-green-600">{result.totalPrice}</span>
+                    </CardTitle>
+                    <CardDescription>{result.roomType}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {result.features.map((feature: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild className="w-full">
+                      <a href={result.bookingUrl} target="_blank" rel="noopener noreferrer">
+                        Book Now
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <main>
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -337,35 +668,16 @@ export default function DashboardPage() {
             </div>
 
             <div className="lg:col-span-1">
-              <DashboardSummary onTrackNewHotel={() => {
-                setIsDialogOpen(true)
-              }} />
+              <DashboardSummary onTrackNewHotel={() => setIsDialogOpen(true)} />
             </div>
           </div>
 
           <div className="mt-8">
-            <Tabs defaultValue="active" className="w-full">
-              <TabsList className="bg-white rounded-full p-1 border">
-                <TabsTrigger value="active" className="rounded-full">
-                  Active Trackers ({activeTrackers})
-                </TabsTrigger>
-                <TabsTrigger value="saved" className="rounded-full">
-                  Price Drops ({priceDrops})
-                </TabsTrigger>
-                <TabsTrigger value="history" className="rounded-full">
-                  History
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="active" className="mt-6">
-                <BookingList tab="active" />
-              </TabsContent>
-              <TabsContent value="saved" className="mt-6">
-                <BookingList tab="saved" />
-              </TabsContent>
-              <TabsContent value="history" className="mt-6">
-                <BookingList tab="history" />
-              </TabsContent>
-            </Tabs>
+            <BookingList 
+              bookings={bookings} 
+              loading={loading}
+              onRebookNow={handleRebookNow}
+            />
           </div>
         </div>
       </main>

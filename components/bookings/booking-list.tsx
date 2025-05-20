@@ -1,79 +1,46 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/lib/auth-context'
 import { Booking } from '@/app/types/booking'
 import { BookingCard } from './booking-card'
-import { format } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 
 interface BookingListProps {
-  tab?: 'active' | 'saved' | 'history'
+  bookings: Booking[]
+  loading: boolean
+  onRebookNow: (booking: Booking) => void
 }
 
-export function BookingList({ tab = 'active' }: BookingListProps) {
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
-
-  useEffect(() => {
-    if (!user) return
-
-    const fetchBookings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('bookings')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-        setBookings(data || [])
-      } catch (error) {
-        console.error('Error fetching bookings:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchBookings()
-  }, [user])
-
-  const filteredBookings = bookings.filter(booking => {
-    if (tab === 'active') return true
-    if (tab === 'saved') return booking.savings > 0
-    if (tab === 'history') return false // You can implement history logic here
-    return true
-  })
-
+export function BookingList({ bookings, loading, onRebookNow }: BookingListProps) {
   if (loading) {
-    return <div>Loading bookings...</div>
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <p>Loading your bookings...</p>
+      </div>
+    )
   }
 
-  if (filteredBookings.length === 0) {
+  if (bookings.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        <p>
-          {tab === 'active' && 'No active bookings found.'}
-          {tab === 'saved' && 'No price drops found.'}
-          {tab === 'history' && 'No booking history found.'}
-        </p>
+      <div className="text-center py-8">
+        <p className="text-gray-600">No bookings found. Start tracking a hotel to see it here.</p>
       </div>
     )
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {filteredBookings.map((booking) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {bookings.map((booking) => (
         <BookingCard
           key={booking.id}
           hotel={booking.hotel_name}
           location={booking.location}
-          dates={`${format(new Date(booking.check_in_date), 'MMM d')} - ${format(new Date(booking.check_out_date), 'MMM d, yyyy')}`}
+          dates={`${new Date(booking.check_in_date).toLocaleDateString()} - ${new Date(booking.check_out_date).toLocaleDateString()}`}
           originalPrice={booking.original_price}
           currentPrice={booking.current_price}
           savings={booking.savings}
-          image={booking.image_url || '/placeholder.svg?height=200&width=400'}
+          image={booking.image_url}
+          onRebookNow={() => onRebookNow(booking)}
         />
       ))}
     </div>

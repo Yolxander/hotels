@@ -10,7 +10,7 @@ async function main(destination, checkInDate, checkOutDate) {
 
     // Launch browser with custom user agent and additional options
     const browser = await chromium.launch({
-      headless: false,
+      headless: true,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-features=IsolateOrigins,site-per-process',
@@ -64,10 +64,8 @@ async function main(destination, checkInDate, checkOutDate) {
       const checkAvailabilityButton = await page.waitForSelector('div[data-ved*="2ahUKEw"] a[data-target-url*="/travel/search"]', { timeout: 5000 });
       
       if (checkAvailabilityButton) {
-        console.log('Found Google Hotels check availability button');
         await checkAvailabilityButton.click();
       } else {
-        console.log('Could not find Google Hotels check availability button, trying alternative...');
         // Fallback to the generic button if the specific one isn't found
         const genericButton = await page.waitForSelector('a[data-target-url*="/travel/search"]', { timeout: 5000 });
         if (genericButton) {
@@ -75,7 +73,7 @@ async function main(destination, checkInDate, checkOutDate) {
         }
       }
     } catch (error) {
-      console.log('Could not find check availability button, continuing with search...');
+      // Continue with search if button not found
     }
 
     // Wait for the new page to load
@@ -91,7 +89,7 @@ async function main(destination, checkInDate, checkOutDate) {
         await checkInInput.press('Enter');
       }
     } catch (error) {
-      console.log('Could not find check-in input, continuing...');
+      // Continue if check-in input not found
     }
 
     // Click the Done button after check-in date
@@ -101,7 +99,7 @@ async function main(destination, checkInDate, checkOutDate) {
         await doneButton.click();
       }
     } catch (error) {
-      console.log('Could not find done button, continuing...');
+      // Continue if done button not found
     }
 
     // Wait a bit for the date picker to close
@@ -117,7 +115,7 @@ async function main(destination, checkInDate, checkOutDate) {
         await checkOutInput.press('Enter');
       }
     } catch (error) {
-      console.log('Could not find check-out input, continuing...');
+      // Continue if check-out input not found
     }
 
     // Click the Done button after check-out date
@@ -127,7 +125,7 @@ async function main(destination, checkInDate, checkOutDate) {
         await doneButton2.click();
       }
     } catch (error) {
-      console.log('Could not find done button, continuing...');
+      // Continue if done button not found
     }
 
     // Wait for results to load
@@ -177,10 +175,25 @@ async function main(destination, checkInDate, checkOutDate) {
     await browser.close();
     return roomListings;
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Scraper error:', error);
     return [];
   }
 }
 
-// Export the main function
-module.exports = main; 
+// Get command line arguments
+const args = process.argv.slice(2);
+if (args.length !== 3) {
+  console.error('Usage: node test.js <destination> <checkInDate> <checkOutDate>');
+  process.exit(1);
+}
+
+// Call main function with arguments
+main(args[0], args[1], args[2])
+  .then(results => {
+    process.stdout.write(JSON.stringify(results));
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    process.exit(1);
+  }); 

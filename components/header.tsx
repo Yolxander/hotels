@@ -44,6 +44,12 @@ export function Header() {
                   Track Hotel
                 </Link>
               </Button>
+              <Button variant="ghost" size="sm" className="rounded-full" asChild>
+                <Link href="/top-hotels">
+                  <Building className="h-4 w-4 mr-2" />
+                  Top Hotels
+                </Link>
+              </Button>
               <Button className="rounded-full bg-black text-white hover:bg-gray-800" asChild>
                 <Link href={isDashboard ? "/" : "/dashboard"}>
                   {isDashboard ? "Home" : "Go to Dashboard"}
@@ -87,6 +93,12 @@ export function Header() {
                   <Link href="/tracker" className="flex items-center">
                     <Search className="h-4 w-4 mr-2" />
                     Track Hotel
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Link href="/top-hotels" className="flex items-center">
+                    <Building className="h-4 w-4 mr-2" />
+                    Top Hotels
                   </Link>
                 </Button>
                 <Button className="w-full justify-start bg-black text-white hover:bg-gray-800" asChild>

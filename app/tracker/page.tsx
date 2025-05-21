@@ -13,18 +13,32 @@ import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
 
-interface RoomListing {
+interface BaseRoomListing {
   name: string;
   price: string;
+  url: string;
+}
+
+interface PriceRoomListing extends BaseRoomListing {
+  provider: string;
+  roomType: string;
+  features: string[];
+  basePrice: string;
+  totalPrice: string;
+  cancellationPolicy?: string;
+}
+
+interface DealRoomListing extends BaseRoomListing {
   rating: string;
   reviews: string;
   deal: string;
-  url: string;
   image: string;
   location: string;
   amenities: string[];
   description: string;
 }
+
+type RoomListing = PriceRoomListing | DealRoomListing;
 
 interface HotelInfo {
   description: string;
@@ -164,16 +178,14 @@ export default function TrackerPage() {
 
         // Transform the data to match our RoomListing interface
         const transformedResults = parsedResults.map((item: any) => ({
-          name: item.name,
-          price: item.price || item.pricePerNight || 'N/A',
-          rating: item.rating,
-          reviews: item.reviews,
-          deal: item.deal,
-          url: item.url,
-          image: item.image,
-          location: item.location,
-          amenities: item.amenities,
-          description: item.description
+          provider: item.provider || 'Unknown Provider',
+          roomType: item.roomType || 'Room',
+          features: Array.isArray(item.features) ? item.features.filter((f: string) => f && f !== ',') : [],
+          basePrice: item.basePrice || 'N/A',
+          totalPrice: item.totalPrice || 'N/A',
+          url: item.bookingUrl || '',
+          name: item.roomType || 'Room',
+          price: item.totalPrice || 'N/A'
         }));
 
         console.log('Transformed results:', transformedResults);
@@ -475,40 +487,59 @@ export default function TrackerPage() {
           
           {scraperType === 'price' && results && results.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {results.map((listing, index) => (
-                <Card key={index} className="flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold">
-                      {listing.name || 'Room'}
-                    </CardTitle>
-                    <CardDescription>
-                      {listing.location}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <div className="space-y-2">
-                      <p className="text-2xl font-bold text-green-600">
-                        ${listing.price}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {listing.url ? (
+              {results.map((listing, index) => {
+                const priceListing = listing as PriceRoomListing;
+                return (
+                  <Card key={index} className="flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {priceListing.roomType}
+                      </CardTitle>
+                      <CardDescription className="text-blue-600">
+                        {priceListing.provider}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <div className="space-y-2">
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold text-green-600">
+                            {priceListing.totalPrice}
+                          </p>
+                          {priceListing.basePrice !== priceListing.totalPrice && (
+                            <p className="text-sm text-gray-500 line-through">
+                              {priceListing.basePrice}
+                            </p>
+                          )}
+                        </div>
+                        {priceListing.features && priceListing.features.length > 0 && (
+                          <div className="mt-2">
+                            <div className="flex flex-wrap gap-2">
+                              {priceListing.features.map((feature, i) => (
+                                <span
+                                  key={i}
+                                  className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+                                >
+                                  {feature}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {priceListing.url && (
                           <a 
-                            href={listing.url} 
+                            href={priceListing.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                            onClick={() => console.log('Opening booking URL:', listing.url)}
+                            className="text-blue-600 hover:underline block mt-4"
                           >
-                            View on Booking.com
+                            Book on {priceListing.provider}
                           </a>
-                        ) : (
-                          'Booking URL not available'
                         )}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
 
@@ -609,77 +640,80 @@ export default function TrackerPage() {
 
           {scraperType === 'deals' && results && results.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((result, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  {result.image && (
-                    <div className="relative h-48 w-full">
-                      <img
-                        src={result.image}
-                        alt={result.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-2">{result.name}</h3>
-                    {result.location && (
-                      <p className="text-gray-600 text-sm mb-2">
-                        <i className="fas fa-map-marker-alt mr-2"></i>
-                        {result.location}
-                      </p>
-                    )}
-                    <div className="flex items-center mb-2">
-                      {result.rating && (
-                        <span className="text-yellow-500 mr-2">
-                          <i className="fas fa-star"></i> {result.rating}
-                        </span>
-                      )}
-                      {result.reviews && (
-                        <span className="text-gray-600 text-sm">
-                          ({result.reviews} reviews)
-                        </span>
-                      )}
-                    </div>
-                    {result.price && (
-                      <p className="text-xl font-bold text-green-600 mb-2">
-                        {result.price}
-                      </p>
-                    )}
-                    {result.deal && (
-                      <p className="text-red-600 font-semibold mb-2">
-                        <i className="fas fa-tag mr-2"></i>
-                        {result.deal}
-                      </p>
-                    )}
-                    {result.amenities && result.amenities.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-sm text-gray-600 mb-1">Amenities:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {result.amenities.map((amenity, i) => (
-                            <span
-                              key={i}
-                              className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
-                            >
-                              {amenity}
-                            </span>
-                          ))}
-                        </div>
+              {results.map((listing, index) => {
+                const dealListing = listing as DealRoomListing;
+                return (
+                  <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    {dealListing.image && (
+                      <div className="relative h-48 w-full">
+                        <img
+                          src={dealListing.image}
+                          alt={dealListing.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     )}
-                    {result.description && (
-                      <p className="text-gray-600 text-sm mb-4">{result.description}</p>
-                    )}
-                    <a
-                      href={result.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                    >
-                      View Deal
-                    </a>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold mb-2">{dealListing.name}</h3>
+                      {dealListing.location && (
+                        <p className="text-gray-600 text-sm mb-2">
+                          <i className="fas fa-map-marker-alt mr-2"></i>
+                          {dealListing.location}
+                        </p>
+                      )}
+                      <div className="flex items-center mb-2">
+                        {dealListing.rating && (
+                          <span className="text-yellow-500 mr-2">
+                            <i className="fas fa-star"></i> {dealListing.rating}
+                          </span>
+                        )}
+                        {dealListing.reviews && (
+                          <span className="text-gray-600 text-sm">
+                            ({dealListing.reviews} reviews)
+                          </span>
+                        )}
+                      </div>
+                      {dealListing.price && (
+                        <p className="text-xl font-bold text-green-600 mb-2">
+                          {dealListing.price}
+                        </p>
+                      )}
+                      {dealListing.deal && (
+                        <p className="text-red-600 font-semibold mb-2">
+                          <i className="fas fa-tag mr-2"></i>
+                          {dealListing.deal}
+                        </p>
+                      )}
+                      {dealListing.amenities && dealListing.amenities.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-sm text-gray-600 mb-1">Amenities:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {dealListing.amenities.map((amenity, i) => (
+                              <span
+                                key={i}
+                                className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+                              >
+                                {amenity}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {dealListing.description && (
+                        <p className="text-gray-600 text-sm mb-4">{dealListing.description}</p>
+                      )}
+                      <a
+                        href={dealListing.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                      >
+                        View Deal
+                      </a>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

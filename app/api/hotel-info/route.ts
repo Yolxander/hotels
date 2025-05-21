@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     await page.setViewport({ width: 1920, height: 1080 });
     
     // Navigate directly to Google Travel search
-    const searchUrl = `https://www.google.com/travel/search?q=${encodeURIComponent(destination)}&ts=CAEaRwopEicyJTB4OGVhOGFhNGZkZGI2NTI0YjoweDdmMjhmNzI2MDY5MTRlN2YSGhIUCgcI6Q8QCBgTEgcI6Q8QCBgUGAEyAhAA&qs=CAEyE0Nnb0lfNXpGdE9Ea3ZaUl9FQUU4AkIJCX9OkQYm9yh_QgkJf06RBib3KH8&ap=ugEHZGV0YWlscw&ictx=111`;
+    const searchUrl = `https://www.google.com/travel/search?q=${encodeURIComponent(destination)}`;
     
     console.log('Navigating to:', searchUrl);
     await page.goto(searchUrl, { waitUntil: 'networkidle0' });

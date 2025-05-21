@@ -41,7 +41,7 @@ export function Header() {
               <Button variant="ghost" size="sm" className="rounded-full" asChild>
                 <Link href="/tracker">
                   <Search className="h-4 w-4 mr-2" />
-                  Track Hotel
+                  Test Hotel Trackers
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-full" asChild>

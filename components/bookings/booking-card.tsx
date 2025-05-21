@@ -32,7 +32,7 @@ export function BookingCard({
   const hasSavings = savings > 0
 
   return (
-    <Card className="overflow-hidden rounded-3xl">
+    <Card className="overflow-hidden rounded-3xl flex flex-col h-full">
       <div className="relative h-48">
         <img src={image || "/placeholder.svg"} alt={hotel} className="w-full h-full object-cover" />
         {hasSavings && <Badge className="absolute top-3 right-3 bg-yellow-300 text-black">Price Drop!</Badge>}
@@ -41,7 +41,7 @@ export function BookingCard({
         <CardTitle>{hotel}</CardTitle>
         <CardDescription>{location}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-grow">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-4 w-4 text-gray-500" />
           <span className="text-sm text-gray-600">{dates}</span>
@@ -90,7 +90,7 @@ export function BookingCard({
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between mt-auto">
         <Button variant="outline" size="sm" className="rounded-full">
           <Mail className="h-4 w-4 mr-2" />
           Email Updates

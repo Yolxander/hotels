@@ -324,7 +324,27 @@ export default function DashboardPage() {
     setScrapingError(null)
 
     try {
-      // Find room listings first
+      // Fetch hotel image first
+      console.log('Fetching hotel image...');
+      const imageResponse = await fetch('/api/hotel-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: formData.hotel_name
+        }),
+      });
+
+      let imageUrl = '/placeholder.svg?height=200&width=400';
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        if (imageData.hotelImages && imageData.hotelImages.length > 0) {
+          imageUrl = imageData.hotelImages[0].url;
+        }
+      }
+
+      // Find room listings
       console.log('Calling findRoomListings...');
       const roomListings = await findRoomListings(formData);
       console.log('findRoomListings returned:', roomListings);
@@ -344,7 +364,7 @@ export default function DashboardPage() {
             current_price: parseFloat(formData.original_price),
             savings: 0,
             room_type: formData.room_type,
-            image_url: '/placeholder.svg?height=200&width=400'
+            image_url: imageUrl
           }
         ])
         .select()
@@ -399,7 +419,6 @@ export default function DashboardPage() {
       })
 
       await fetchBookings()
-      // window.location.reload()
     } catch (error) {
       console.error('Error in handleSubmit:', error)
       setScrapingError(error instanceof Error ? error.message : 'An error occurred')

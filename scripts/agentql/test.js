@@ -180,20 +180,25 @@ async function main(destination, checkInDate, checkOutDate) {
   }
 }
 
-// Get command line arguments
-const args = process.argv.slice(2);
-if (args.length !== 3) {
-  console.error('Usage: node test.js <destination> <checkInDate> <checkOutDate>');
-  process.exit(1);
+// Only execute if this file is being run directly
+if (require.main === module) {
+  // Get command line arguments
+  const args = process.argv.slice(2);
+  if (args.length !== 3) {
+    console.error('Usage: node test.js <destination> <checkInDate> <checkOutDate>');
+    process.exit(1);
+  }
+
+  // Call main function with arguments
+  main(args[0], args[1], args[2])
+    .then(results => {
+      process.stdout.write(JSON.stringify(results));
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      process.exit(1);
+    });
 }
 
-// Call main function with arguments
-main(args[0], args[1], args[2])
-  .then(results => {
-    process.stdout.write(JSON.stringify(results));
-    process.exit(0);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    process.exit(1);
-  }); 
+module.exports = main; 

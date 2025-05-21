@@ -21,9 +21,7 @@ const nextConfig = {
     }
     return config;
   },
-  experimental: {
-    serverComponentsExternalPackages: ['agentql', 'playwright'],
-  },
+  serverExternalPackages: ['agentql', 'playwright'],
 }
 
 export default nextConfig

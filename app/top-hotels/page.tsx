@@ -67,7 +67,150 @@ export default function TopHotels() {
           </div>
         </section>
 
-        {/* Content will go here */}
+        {/* Amazing Hotels Section */}
+        <section className="max-w-8xl mx-auto mt-24 mb-16 px-2 md:px-0">
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Our Most<br className='md:hidden'/> Amazing Hotels</h2>
+          <p className="text-gray-600 text-lg text-center mb-10">Discover the perfect accommodation for your stay worldwide.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            {/* Left: Large Card */}
+            <div className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end">
+              <img src="/hotel/emerald-valley-lodge.jpg" alt="Emerald Valley Lodge" className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="relative z-10 p-8">
+                <div className="text-white text-2xl md:text-3xl font-bold mb-1">Emerald Valley Lodge</div>
+                <div className="text-gray-200 text-base mb-2">Palm Jumeirah, Dubai</div>
+                <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                  <span>★★★★★</span>
+                  <span className="text-gray-200 text-sm">(5525 Visitors)</span>
+                </div>
+                <span className="absolute bottom-8 right-8 text-white bg-white/20 rounded-full p-2"><svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
+              </div>
+            </div>
+            {/* Right: Two Small Cards Stacked */}
+            <div className="flex flex-col gap-6 h-[380px] md:h-[540px]">
+              {/* Small Card 1 */}
+              <div className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
+                <img src="/hotel/saroza-hotel-pool.jpg" alt="Saroza Hotel" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="relative z-10 p-6">
+                  <div className="text-white text-xl font-bold mb-1">Saroza Hotel</div>
+                  <div className="text-gray-200 text-sm mb-1">Malang, Indonesia</div>
+                  <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                    <span>★★★★☆</span>
+                    <span className="text-gray-200 text-xs">(4983 Visitors)</span>
+                  </div>
+                  <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
+                </div>
+              </div>
+              {/* Small Card 2 */}
+              <div className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
+                <img src="/hotel/saroza-hotel-room.jpg" alt="Saroza Hotel" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="relative z-10 p-6">
+                  <div className="text-white text-xl font-bold mb-1">Saroza Hotel</div>
+                  <div className="text-gray-200 text-sm mb-1">Malang, Indonesia</div>
+                  <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                    <span>★★★★☆</span>
+                    <span className="text-gray-200 text-xs">(4983 Visitors)</span>
+                  </div>
+                  <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5-Star Hotels Section */}
+        <section className="max-w-7xl mx-auto mb-24 px-2 md:px-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-6 md:gap-0">
+            <div className="flex-1">
+              <h2 className="text-4xl md:text-5xl font-bold mb-2 md:mb-0 text-left">Explore our<br />5-Star Hotels</h2>
+            </div>
+            <div className="flex-1 flex flex-col md:items-end">
+              <p className="text-gray-600 text-lg mb-4 md:mb-2 text-left md:text-right">Discover the perfect accommodation for your stay worldwide.</p>
+              <div className="relative w-full md:w-[340px]">
+                <input type="text" placeholder="Find Hotels" className="w-full rounded-full bg-gray-100 py-3 pl-6 pr-12 text-lg shadow focus:outline-none" />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/emerald-valley-lodge-2.jpg" alt="Emerald Valley Lodge" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Emerald Valley Lodge</div>
+                <div className="text-gray-500 text-sm mb-2">New Zealand, Australia</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(8768 Visitors)</span>
+                </div>
+              </div>
+            </div>
+            {/* Card 2 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/summer-resort.jpg" alt="Summer Resort" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Summer Resort</div>
+                <div className="text-gray-500 text-sm mb-2">Manchester, London</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(9768 Visitors)</span>
+                </div>
+              </div>
+            </div>
+            {/* Card 3 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/greeny-hotel.jpg" alt="Greeny Hotel" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Greeny Hotel</div>
+                <div className="text-gray-500 text-sm mb-2">Malang, Indonesia</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(168 Visitors)</span>
+                </div>
+              </div>
+            </div>
+            {/* Card 4 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/golden-horizon.jpg" alt="Golden Horizon Hotel" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Golden Horizon Hotel</div>
+                <div className="text-gray-500 text-sm mb-2">New York, USA</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(3455 Visitors)</span>
+                </div>
+              </div>
+            </div>
+            {/* Card 5 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/boulevard.jpg" alt="Boulevard" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Boulevard</div>
+                <div className="text-gray-500 text-sm mb-2">Tokyo, Japan</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(768 Visitors)</span>
+                </div>
+              </div>
+            </div>
+            {/* Card 6 */}
+            <div className="rounded-2xl overflow-hidden shadow bg-white">
+              <img src="/hotel/palm-yard.jpg" alt="Palm Yard" className="w-full h-48 object-cover" />
+              <div className="p-5">
+                <div className="font-bold text-xl mb-1">Palm Yard</div>
+                <div className="text-gray-500 text-sm mb-2">Catalan, Barcelona</div>
+                <div className="flex items-center gap-2 text-yellow-500 text-base">
+                  <span>★★★★★</span>
+                  <span className="text-gray-500 text-sm">(3768 Visitors)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

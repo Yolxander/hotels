@@ -8,9 +8,10 @@ export interface Booking {
   original_price: number;
   current_price: number;
   savings: number;
-  image_url: string;
+  image_url?: string;
   room_type: string;
   created_at: string;
   updated_at: string;
-  hasRoomListings?: boolean;
+  hasRoomListings: boolean;
+  is_tracking?: boolean;
 } 

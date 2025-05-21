@@ -722,6 +722,7 @@ export default function DashboardPage() {
               bookings={bookings} 
               loading={loading}
               onRebookNow={handleRebookNow}
+              onTrackingUpdate={fetchBookings}
             />
           </div>
         </div>
@@ -781,14 +782,14 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
               <div className="text-sm text-gray-500">Current Price</div>
               <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>
                 ${currentPrice}
-                {hasSavings && <span className="text-xs font-semibold underline decoration-4 decoration-yellow-300"></span>}
+                {hasSavings && <span className="text-xs ml-1">(lowest available)</span>}
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-500">Savings</div>
               <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>
                 ${savings}
-                {hasSavings && <span className="text-xs font-semibold underline decoration-4 decoration-yellow-300">({Math.round((savings / originalPrice) * 100)}%)</span>}
+                {hasSavings && <span className="text-xs ml-1">({Math.round((savings / originalPrice) * 100)}%)</span>}
               </div>
             </div>
           </div>

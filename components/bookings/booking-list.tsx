@@ -40,6 +40,7 @@ export function BookingList({ bookings, loading, onRebookNow }: BookingListProps
           currentPrice={booking.current_price}
           savings={booking.savings}
           image={booking.image_url}
+          hasRoomListings={booking.hasRoomListings}
           onRebookNow={() => onRebookNow(booking)}
         />
       ))}

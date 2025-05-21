@@ -68,12 +68,34 @@ export default function DashboardPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select(`
+          *,
+          room_listings (
+            base_price,
+            total_price
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setBookings(data || [])
+
+      // Process bookings to include lowest prices
+      const processedBookings = data.map((booking: any) => {
+        const roomListings = booking.room_listings || [];
+        const lowestPrice = roomListings.length > 0 
+          ? Math.min(...roomListings.map((listing: any) => listing.total_price))
+          : booking.current_price;
+
+        return {
+          ...booking,
+          current_price: lowestPrice,
+          savings: booking.original_price - lowestPrice,
+          hasRoomListings: roomListings.length > 0
+        };
+      });
+
+      setBookings(processedBookings || [])
     } catch (error) {
       console.error('Error fetching bookings:', error)
     } finally {
@@ -716,9 +738,10 @@ interface BookingCardProps {
   currentPrice: number
   savings: number
   image: string
+  hasRoomListings: boolean
 }
 
-function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savings, image }: BookingCardProps) {
+function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savings, image, hasRoomListings }: BookingCardProps) {
   const hasSavings = savings > 0
 
   return (
@@ -756,20 +779,32 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
             </div>
             <div>
               <div className="text-sm text-gray-500">Current Price</div>
-              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>${currentPrice}</div>
+              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>
+                ${currentPrice}
+                {hasSavings && <span className="text-xs font-semibold underline decoration-4 decoration-yellow-300"></span>}
+              </div>
             </div>
             <div>
               <div className="text-sm text-gray-500">Savings</div>
-              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>${savings}</div>
+              <div className={`font-semibold ${hasSavings ? "text-green-600" : ""}`}>
+                ${savings}
+                {hasSavings && <span className="text-xs font-semibold underline decoration-4 decoration-yellow-300">({Math.round((savings / originalPrice) * 100)}%)</span>}
+              </div>
             </div>
           </div>
         </div>
 
-        {hasSavings && (
+        {hasSavings ? (
           <div className="bg-green-50 p-3 rounded-lg border border-green-100">
             <p className="text-sm text-green-800">
               Good news! The price for your hotel dropped from ${originalPrice} to ${currentPrice}. You may want to
               rebook and save!
+            </p>
+          </div>
+        ) : !hasRoomListings && (
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+            <p className="text-sm text-blue-800">
+              No cheaper rooms found at the moment. Set up a tracker to monitor price drops and get notified when better deals become available.
             </p>
           </div>
         )}
@@ -783,6 +818,11 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
           <Button size="sm" className="rounded-full">
             <Percent className="h-4 w-4 mr-2" />
             Rebook Now
+          </Button>
+        ) : !hasRoomListings ? (
+          <Button size="sm" className="rounded-full bg-blue-500 hover:bg-blue-600">
+            <Bell className="h-4 w-4 mr-2" />
+            Set Up Tracker
           </Button>
         ) : (
           <Button variant="secondary" size="sm" className="rounded-full">

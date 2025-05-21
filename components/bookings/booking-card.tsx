@@ -14,6 +14,7 @@ interface BookingCardProps {
   currentPrice: number
   savings: number
   image: string
+  hasRoomListings: boolean
   onRebookNow: () => void
 }
 
@@ -25,6 +26,7 @@ export function BookingCard({
   currentPrice,
   savings,
   image,
+  hasRoomListings,
   onRebookNow
 }: BookingCardProps) {
   const hasSavings = savings > 0
@@ -33,7 +35,7 @@ export function BookingCard({
     <Card className="overflow-hidden rounded-3xl">
       <div className="relative h-48">
         <img src={image || "/placeholder.svg"} alt={hotel} className="w-full h-full object-cover" />
-        {hasSavings && <Badge className="absolute top-3 right-3 bg-green-500">Price Drop!</Badge>}
+        {hasSavings && <Badge className="absolute top-3 right-3 bg-yellow-300 text-black">Price Drop!</Badge>}
       </div>
       <CardHeader>
         <CardTitle>{hotel}</CardTitle>
@@ -67,17 +69,23 @@ export function BookingCard({
           </div>
           <div>
             <div className="text-sm text-gray-500">Savings</div>
-            <div className={`text-lg font-semibold ${hasSavings ? 'text-green-600' : ''}`}>
+            <div className={`text-lg font-semibold ${hasSavings ? 'font-semibold underline decoration-4 decoration-yellow-300' : ''}`}>
               ${savings}
             </div>
           </div>
         </div>
 
-        {hasSavings && (
+        {hasSavings ? (
           <div className="bg-yellow-300 p-3 rounded-lg border border-yellow-100">
             <p className="text-sm text-black">
               Good news! The price for your hotel dropped from ${originalPrice} to ${currentPrice}. You may want to
               rebook and save!
+            </p>
+          </div>
+        ) : !hasRoomListings && (
+          <div className="bg-red-50 p-3 rounded-lg border border-red-100">
+            <p className="text-sm text-black">
+              No cheaper rooms found at the moment. Set up a tracker to monitor price drops and get notified when better deals become available.
             </p>
           </div>
         )}
@@ -87,9 +95,22 @@ export function BookingCard({
           <Mail className="h-4 w-4 mr-2" />
           Email Updates
         </Button>
-        <Button onClick={onRebookNow} className="rounded-full">
-          Rebook Now
-        </Button>
+        {hasSavings ? (
+          <Button onClick={onRebookNow} size="sm" className="rounded-full">
+            <Percent className="h-4 w-4 mr-2" />
+            Rebook Now
+          </Button>
+        ) : !hasRoomListings ? (
+          <Button onClick={onRebookNow} size="sm" className="rounded-full bg-black hover:bg-gray-900 text-yellow-300 border border-yellow-300/20">
+            <Bell className="h-4 w-4 mr-2" />
+            Set Up Tracker
+          </Button>
+        ) : (
+          <Button variant="secondary" size="sm" className="rounded-full">
+            <Bell className="h-4 w-4 mr-2" />
+            Notify Me
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )

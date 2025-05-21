@@ -12,4 +12,5 @@ export interface Booking {
   room_type: string;
   created_at: string;
   updated_at: string;
+  hasRoomListings?: boolean;
 } 

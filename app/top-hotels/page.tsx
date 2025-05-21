@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { Header } from "@/components/header"
 import Footer from '../components/Footer'
+import ScrollToSearch from '../components/ScrollToSearch'
 
 export default function TopHotels() {
   return (
@@ -21,56 +22,69 @@ export default function TopHotels() {
             {/* Left: Heading and Subtext */}
             <div className="flex-1 flex flex-col justify-center md:justify-end md:pb-44">
               <h1 className="text-white text-4xl md:text-6xl font-bold tracking-tight text-left leading-tight drop-shadow-lg mb-4">
-                Stay Quietly<br className="hidden md:block" />with No Worries
+                Find the <span className="text-yellow-300">Hottest </span><br className="hidden md:block" /> Hotels in Your Next Destination
               </h1>
               <p className="text-white text-lg md:text-2xl font-medium text-left max-w-xl mb-6">
-                Discover the perfect accommodation for your stay worldwide. Make your travel experience become easier and more enjoyable
+                Fill up your trip details and get the best deals on premium accommodations. Your perfect stay is just a search away.
               </p>
             </div>
             {/* Right: Stats */}
             <div className="flex flex-col gap-8 items-end justify-center md:justify-end md:pb-44 min-w-[180px]">
-              <div className="text-white text-4xl md:text-5xl font-bold text-right">12k+<div className="text-base font-normal">Satisfied Visitors</div></div>
-              <div className="text-white text-4xl md:text-5xl font-bold text-right">4.5k+<div className="text-base font-normal">Tour Guides</div></div>
-              <div className="text-white text-4xl md:text-5xl font-bold text-right">2k+<div className="text-base font-normal">Special Travel</div></div>
+              <div className="text-white text-4xl md:text-5xl font-bold text-right">15k+<div className="text-base font-normal">Premium Hotels</div></div>
+              <div className="text-white text-4xl md:text-5xl font-bold text-right">50k+<div className="text-base font-normal">Happy Guests</div></div>
+              <div className="text-white text-4xl md:text-5xl font-bold text-right">30%<div className="text-base font-normal">Best Price Guarantee</div></div>
             </div>
           </div>
           {/* Search Bar */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-12 md:bottom-12 w-[95%] md:w-4/5 bg-white rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-between px-4 py-6 gap-4 z-20">
-            {/* Location */}
-            <div className="flex flex-col items-start flex-1 min-w-[150px]">
-              <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="10"/><path d="M11 15v-4"/><path d="M11 7h.01"/></svg>Location</label>
-              <input type="text" placeholder="Location" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none" />
-            </div>
-            {/* Person */}
-            <div className="flex flex-col items-start flex-1 min-w-[150px]">
-              <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 11 0"/></svg>Person</label>
-              <select className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none">
-                <option>Person</option>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4+</option>
-              </select>
-            </div>
-            {/* Check in */}
-            <div className="flex flex-col items-start flex-1 min-w-[150px]">
-              <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check in</label>
-              <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none" />
-            </div>
-            {/* Check out */}
-            <div className="flex flex-col items-start flex-1 min-w-[150px]">
-              <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check out</label>
-              <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none" />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-12 md:bottom-12 w-[95%] md:w-4/5 bg-white rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-between px-4 py-6 gap-4 z-20 search-section">
+            <div className="grid grid-cols-2 md:flex md:flex-row w-full gap-4">
+              {/* Location */}
+              <div className="flex flex-col items-start">
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="10"/><path d="M11 15v-4"/><path d="M11 7h.01"/></svg>Location</label>
+                <input type="text" placeholder="Location" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+              </div>
+              {/* Person */}
+              <div className="flex flex-col items-start">
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 11 0"/></svg>Person</label>
+                <select className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200">
+                  <option>Person</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4+</option>
+                </select>
+              </div>
+              {/* Check in */}
+              <div className="flex flex-col items-start">
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check in</label>
+                <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+              </div>
+              {/* Check out */}
+              <div className="flex flex-col items-start">
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check out</label>
+                <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+              </div>
             </div>
             {/* Search Button */}
-            <button className="w-full md:w-auto bg-black text-white font-semibold rounded-xl px-8 py-4 mt-2 md:mt-7 text-lg transition hover:bg-gray-900">Search</button>
+            <button className="w-full md:w-auto bg-black text-white font-semibold rounded-xl px-8 py-4 mt-2 md:mt-0 text-lg transition hover:bg-gray-900">Search</button>
           </div>
         </section>
 
         {/* Amazing Hotels Section */}
         <section className="max-w-8xl mx-auto mt-24 mb-16 px-2 md:px-2">
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Our Most<br className='md:hidden'/> Amazing Hotels</h2>
-          <p className="text-gray-600 text-lg text-center mb-10">Discover the perfect accommodation for your stay worldwide.</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Our Curated<br className='md:hidden'/> Hotel Collection</h2>
+          <div className="flex flex-col items-center gap-4 mb-10">
+            <p className="text-gray-600 text-lg text-center max-w-2xl">
+              <span className="font-semibold text-gray-800">Handpicked luxury stays</span> that our experts love. 
+              <span className="block mt-2 text-gray-700">Ready to find your perfect match?</span>
+            </p>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-gray-600 text-base text-center">
+                Enter your travel details above and we'll customize this entire page just for you
+              </p>
+              <ScrollToSearch />
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Left: Large Card */}
             <div className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end">

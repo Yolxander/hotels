@@ -595,15 +595,17 @@ export default function DashboardPage() {
       </Dialog>
 
       <Dialog open={isRebookModalOpen} onOpenChange={setIsRebookModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle>Available Deals</DialogTitle>
-            <DialogDescription>Here are the best available prices for your dates</DialogDescription>
+            <DialogTitle className="text-2xl font-light">
+              Your <span className="italic font-normal text-yellow-300">Deals</span>
+            </DialogTitle>
+            <DialogDescription className="text-gray-500">Here are the best available prices for your dates</DialogDescription>
           </DialogHeader>
 
           {scrapingLoading ? (
             <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin mb-4 text-yellow-300" />
               <p>Searching for the best deals...</p>
             </div>
           ) : scrapingError ? (
@@ -611,31 +613,52 @@ export default function DashboardPage() {
               <AlertDescription>{scrapingError}</AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {scrapingResults.slice(0, 5).map((result, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="flex justify-between">
-                      <span>{result.provider}</span>
-                      <span className="text-green-600">{result.totalPrice}</span>
-                    </CardTitle>
-                    <CardDescription>{result.roomType}</CardDescription>
+                <Card 
+                  key={index} 
+                  className="hover:shadow-lg transition-shadow duration-200 cursor-pointer border-gray-200"
+                  onClick={() => window.open(result.bookingUrl, '_blank')}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          {result.roomType}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-gray-500">
+                          {result.provider}
+                        </CardDescription>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-black underline decoration-4 decoration-yellow-300">
+                          {result.totalPrice}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {result.basePrice} base
+                        </div>
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-2">
                     <div className="space-y-2">
                       {result.features.map((feature: string, i: number) => (
                         <div key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">{feature}</span>
+                          <CheckCircle2 className="h-4 w-4 text-yellow-300 flex-shrink-0" />
+                          <span className="text-sm text-gray-600">{feature}</span>
                         </div>
                       ))}
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <Button asChild className="w-full">
-                      <a href={result.bookingUrl} target="_blank" rel="noopener noreferrer">
-                        Book Now
-                      </a>
+                  <CardFooter className="pt-2">
+                    <Button 
+                      className="w-full bg-black hover:bg-gray-900 text-yellow-300 border border-yellow-300/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(result.bookingUrl, '_blank');
+                      }}
+                    >
+                      Book Now
                     </Button>
                   </CardFooter>
                 </Card>

@@ -14,13 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Image from 'next/image';
 
 interface RoomListing {
-  provider: string;
-  roomType: string;
+  name: string;
   price: string;
-  totalPrice: string;
-  cancellationPolicy: string;
-  bookingUrl: string;
-  hotelName: string;
+  rating: string;
+  reviews: string;
+  deal: string;
+  url: string;
+  image: string;
+  location: string;
+  amenities: string[];
+  description: string;
 }
 
 interface HotelInfo {
@@ -46,7 +49,7 @@ export default function TrackerPage() {
   const [hotelInfo, setHotelInfo] = useState<HotelInfo | null>(null);
   const [hotelImages, setHotelImages] = useState<HotelImage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [scraperType, setScraperType] = useState<'price' | 'info' | 'images'>('price');
+  const [scraperType, setScraperType] = useState<'price' | 'info' | 'images' | 'deals'>('price');
   const [formData, setFormData] = useState({
     hotel_name: "",
     location: "",
@@ -83,7 +86,39 @@ export default function TrackerPage() {
     setHotelImages([]);
 
     try {
-      if (scraperType === 'price') {
+      if (scraperType === 'deals') {
+        const response = await fetch('/api/hotel-deals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            destination: formData.location,
+            checkIn: formData.check_in_date.toISOString().split('T')[0],
+            checkOut: formData.check_out_date.toISOString().split('T')[0],
+            travelers: formData.room_type
+          }),
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch hotel deals');
+        }
+
+        setResults(data.hotelSuggestions.map((deal: any) => ({
+          name: deal.name,
+          price: deal.price,
+          rating: deal.rating,
+          reviews: deal.reviews,
+          deal: deal.deal,
+          url: deal.url,
+          image: deal.image,
+          location: deal.location,
+          amenities: deal.amenities,
+          description: deal.description
+        })));
+      } else if (scraperType === 'price') {
         const requestBody = {
           destination: formData.hotel_name,
           checkInDate: formData.check_in_date.toISOString().split('T')[0],
@@ -129,13 +164,16 @@ export default function TrackerPage() {
 
         // Transform the data to match our RoomListing interface
         const transformedResults = parsedResults.map((item: any) => ({
-          provider: item.provider,
+          name: item.name,
           price: item.price || item.pricePerNight || 'N/A',
-          totalPrice: item.totalPrice || item.price || 'N/A',
-          cancellationPolicy: item.cancellationPolicy || 'Free cancellation available',
-          bookingUrl: item.bookingUrl,
-          roomType: item.roomType,
-          hotelName: item.hotelName
+          rating: item.rating,
+          reviews: item.reviews,
+          deal: item.deal,
+          url: item.url,
+          image: item.image,
+          location: item.location,
+          amenities: item.amenities,
+          description: item.description
         }));
 
         console.log('Transformed results:', transformedResults);
@@ -202,7 +240,7 @@ export default function TrackerPage() {
         <Label htmlFor="scraper-type">Scraper Type</Label>
         <Select
           value={scraperType}
-          onValueChange={(value: 'price' | 'info' | 'images') => {
+          onValueChange={(value: 'price' | 'info' | 'images' | 'deals') => {
             console.log('Scraper type changed to:', value);
             setScraperType(value);
           }}
@@ -214,6 +252,7 @@ export default function TrackerPage() {
             <SelectItem value="price">Price Scraper</SelectItem>
             <SelectItem value="info">Hotel Info Scraper</SelectItem>
             <SelectItem value="images">Hotel Images Scraper</SelectItem>
+            <SelectItem value="deals">Hotel Deals Scraper</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -231,7 +270,7 @@ export default function TrackerPage() {
             />
           </div>
 
-          {scraperType === 'price' && (
+          {scraperType === 'price' || scraperType === 'deals' ? (
             <>
               <div className="grid gap-2">
                 <Label htmlFor="location">Location*</Label>
@@ -303,19 +342,21 @@ export default function TrackerPage() {
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="original-price">Original Price*</Label>
-                <Input
-                  id="original-price"
-                  placeholder="e.g. 320"
-                  type="number"
-                  value={formData.original_price}
-                  onChange={(e) => handleInputChange("original_price", e.target.value)}
-                  disabled={loading}
-                />
-              </div>
+              {scraperType === 'price' && (
+                <div className="grid gap-2">
+                  <Label htmlFor="original-price">Original Price*</Label>
+                  <Input
+                    id="original-price"
+                    placeholder="e.g. 320"
+                    type="number"
+                    value={formData.original_price}
+                    onChange={(e) => handleInputChange("original_price", e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              )}
             </>
-          )}
+          ) : null}
 
           <div className="grid gap-2">
             <Label htmlFor="email">Email for Alerts</Label>
@@ -334,10 +375,10 @@ export default function TrackerPage() {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {scraperType === 'price' ? 'Searching...' : scraperType === 'info' ? 'Fetching Info...' : 'Fetching Images...'}
+              {scraperType === 'price' ? 'Searching...' : scraperType === 'info' ? 'Fetching Info...' : scraperType === 'images' ? 'Fetching Images...' : 'Fetching Deals...'}
             </>
           ) : (
-            scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : 'Get Hotel Images'
+            scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : scraperType === 'images' ? 'Get Hotel Images' : 'Get Hotel Deals'
           )}
         </Button>
       </form>
@@ -352,7 +393,7 @@ export default function TrackerPage() {
         <div className="mt-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto" />
           <p className="mt-2 text-gray-600">
-            {scraperType === 'price' ? 'Searching for hotels...' : scraperType === 'info' ? 'Fetching hotel information...' : 'Fetching hotel images...'}
+            {scraperType === 'price' ? 'Searching for hotels...' : scraperType === 'info' ? 'Fetching hotel information...' : scraperType === 'images' ? 'Fetching hotel images...' : 'Fetching hotel deals...'}
           </p>
         </div>
       )}
@@ -438,10 +479,10 @@ export default function TrackerPage() {
                 <Card key={index} className="flex flex-col">
                   <CardHeader>
                     <CardTitle className="text-lg font-semibold">
-                      {listing.roomType || 'Room'}
+                      {listing.name || 'Room'}
                     </CardTitle>
                     <CardDescription>
-                      {listing.hotelName}
+                      {listing.location}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow">
@@ -450,13 +491,13 @@ export default function TrackerPage() {
                         ${listing.price}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {listing.bookingUrl ? (
+                        {listing.url ? (
                           <a 
-                            href={listing.bookingUrl} 
+                            href={listing.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
-                            onClick={() => console.log('Opening booking URL:', listing.bookingUrl)}
+                            onClick={() => console.log('Opening booking URL:', listing.url)}
                           >
                             View on Booking.com
                           </a>
@@ -562,6 +603,82 @@ export default function TrackerPage() {
                     </CardContent>
                   )}
                 </Card>
+              ))}
+            </div>
+          )}
+
+          {scraperType === 'deals' && results && results.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {results.map((result, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  {result.image && (
+                    <div className="relative h-48 w-full">
+                      <img
+                        src={result.image}
+                        alt={result.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold mb-2">{result.name}</h3>
+                    {result.location && (
+                      <p className="text-gray-600 text-sm mb-2">
+                        <i className="fas fa-map-marker-alt mr-2"></i>
+                        {result.location}
+                      </p>
+                    )}
+                    <div className="flex items-center mb-2">
+                      {result.rating && (
+                        <span className="text-yellow-500 mr-2">
+                          <i className="fas fa-star"></i> {result.rating}
+                        </span>
+                      )}
+                      {result.reviews && (
+                        <span className="text-gray-600 text-sm">
+                          ({result.reviews} reviews)
+                        </span>
+                      )}
+                    </div>
+                    {result.price && (
+                      <p className="text-xl font-bold text-green-600 mb-2">
+                        {result.price}
+                      </p>
+                    )}
+                    {result.deal && (
+                      <p className="text-red-600 font-semibold mb-2">
+                        <i className="fas fa-tag mr-2"></i>
+                        {result.deal}
+                      </p>
+                    )}
+                    {result.amenities && result.amenities.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-600 mb-1">Amenities:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {result.amenities.map((amenity, i) => (
+                            <span
+                              key={i}
+                              className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+                            >
+                              {amenity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {result.description && (
+                      <p className="text-gray-600 text-sm mb-4">{result.description}</p>
+                    )}
+                    <a
+                      href={result.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                    >
+                      View Deal
+                    </a>
+                  </div>
+                </div>
               ))}
             </div>
           )}

@@ -21,7 +21,10 @@ const nextConfig = {
     }
     return config;
   },
-  serverExternalPackages: ['agentql', 'playwright'],
+  serverExternalPackages: ['agentql', 'playwright', 'playwright-core'],
+  experimental: {
+    serverActions: true,
+  }
 }
 
 export default nextConfig

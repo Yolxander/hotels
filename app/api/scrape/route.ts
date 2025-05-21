@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import main from '@/scripts/agentql/test';
 
 export async function POST(request: Request) {
   try {
@@ -17,18 +14,11 @@ export async function POST(request: Request) {
 
     console.log('Executing scraper with params:', { destination, checkInDate, checkOutDate, originalPrice });
 
-    // Execute the scraper script
-    const { stdout, stderr } = await execAsync(
-      `node scripts/agentql/test.js "${destination}" "${checkInDate}" "${checkOutDate}"`
-    );
-
-    console.log('Raw scraper stdout:', stdout);
-    if (stderr) {
-      console.error('Scraper stderr:', stderr);
-    }
-
-    // Return the raw stdout for now
-    return NextResponse.json({ rawData: stdout });
+    // Call the main function directly
+    const results = await main(destination, checkInDate, checkOutDate);
+    
+    // Return the results
+    return NextResponse.json({ rawData: JSON.stringify(results) });
   } catch (error) {
     console.error('Error in scrape route:', error);
     return NextResponse.json(

@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Image from 'next/image';
 
 interface RoomListing {
   provider: string;
@@ -542,12 +543,18 @@ export default function TrackerPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {hotelImages.map((image, index) => (
                 <Card key={index} className="overflow-hidden">
-                  <div className="relative aspect-video">
-                    <img
-                      src={image.url}
-                      alt={image.alt}
-                      className="object-cover w-full h-full"
-                    />
+                  <div className="relative aspect-video w-full">
+                    <div className="absolute inset-0">
+                      <Image
+                        src={image.url}
+                        alt={image.alt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        unoptimized
+                        priority={index === 0}
+                      />
+                    </div>
                   </div>
                   {image.caption && (
                     <CardContent className="p-4">

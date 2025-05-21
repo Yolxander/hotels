@@ -22,12 +22,34 @@ export function DashboardSummary({ onTrackNewHotel }: DashboardSummaryProps) {
       try {
         const { data, error } = await supabase
           .from('bookings')
-          .select('*')
+          .select(`
+            *,
+            room_listings (
+              base_price,
+              total_price
+            )
+          `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
 
         if (error) throw error
-        setBookings(data || [])
+
+        // Process bookings to include lowest prices and savings
+        const processedBookings = data.map((booking: any) => {
+          const roomListings = booking.room_listings || [];
+          const lowestPrice = roomListings.length > 0 
+            ? Math.min(...roomListings.map((listing: any) => listing.total_price))
+            : booking.current_price;
+
+          return {
+            ...booking,
+            current_price: lowestPrice,
+            savings: booking.original_price - lowestPrice,
+            hasRoomListings: roomListings.length > 0
+          };
+        });
+
+        setBookings(processedBookings || [])
       } catch (error) {
         console.error('Error fetching bookings:', error)
       } finally {
@@ -40,7 +62,7 @@ export function DashboardSummary({ onTrackNewHotel }: DashboardSummaryProps) {
 
   const activeTrackers = bookings.length
   const priceDrops = bookings.filter(booking => booking.savings > 0).length
-  const totalSavings = bookings.reduce((sum, booking) => sum + booking.savings, 0)
+  const totalSavings = bookings.reduce((sum, booking) => sum + (booking.savings > 0 ? booking.savings : 0), 0)
 
   if (loading) {
     return (

@@ -31,14 +31,21 @@ interface HotelInfo {
   websiteUrl: string;
 }
 
+interface HotelImage {
+  url: string;
+  alt: string;
+  caption: string;
+}
+
 export default function TrackerPage() {
   console.log('=== TrackerPage Component Rendered ===');
 
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<RoomListing[]>([]);
   const [hotelInfo, setHotelInfo] = useState<HotelInfo | null>(null);
+  const [hotelImages, setHotelImages] = useState<HotelImage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [scraperType, setScraperType] = useState<'price' | 'info'>('price');
+  const [scraperType, setScraperType] = useState<'price' | 'info' | 'images'>('price');
   const [formData, setFormData] = useState({
     hotel_name: "",
     location: "",
@@ -72,6 +79,7 @@ export default function TrackerPage() {
     setError(null);
     setResults([]);
     setHotelInfo(null);
+    setHotelImages([]);
 
     try {
       if (scraperType === 'price') {
@@ -131,8 +139,7 @@ export default function TrackerPage() {
 
         console.log('Transformed results:', transformedResults);
         setResults(transformedResults);
-      } else {
-        // Hotel info scraper
+      } else if (scraperType === 'info') {
         console.log('Making API request to /api/hotel-info');
         const response = await fetch('/api/hotel-info', {
           method: 'POST',
@@ -154,6 +161,28 @@ export default function TrackerPage() {
         }
 
         setHotelInfo(data.hotelInfo);
+      } else if (scraperType === 'images') {
+        console.log('Making API request to /api/hotel-images');
+        const response = await fetch('/api/hotel-images', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            destination: formData.hotel_name
+          }),
+        });
+
+        console.log('API Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('Hotel Images Response:', data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch hotel images');
+        }
+
+        setHotelImages(data.hotelImages);
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);
@@ -172,7 +201,7 @@ export default function TrackerPage() {
         <Label htmlFor="scraper-type">Scraper Type</Label>
         <Select
           value={scraperType}
-          onValueChange={(value: 'price' | 'info') => {
+          onValueChange={(value: 'price' | 'info' | 'images') => {
             console.log('Scraper type changed to:', value);
             setScraperType(value);
           }}
@@ -183,6 +212,7 @@ export default function TrackerPage() {
           <SelectContent>
             <SelectItem value="price">Price Scraper</SelectItem>
             <SelectItem value="info">Hotel Info Scraper</SelectItem>
+            <SelectItem value="images">Hotel Images Scraper</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -303,10 +333,10 @@ export default function TrackerPage() {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {scraperType === 'price' ? 'Searching...' : 'Fetching Info...'}
+              {scraperType === 'price' ? 'Searching...' : scraperType === 'info' ? 'Fetching Info...' : 'Fetching Images...'}
             </>
           ) : (
-            scraperType === 'price' ? 'Search Hotel' : 'Get Hotel Info'
+            scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : 'Get Hotel Images'
           )}
         </Button>
       </form>
@@ -321,7 +351,7 @@ export default function TrackerPage() {
         <div className="mt-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto" />
           <p className="mt-2 text-gray-600">
-            {scraperType === 'price' ? 'Searching for hotels...' : 'Fetching hotel information...'}
+            {scraperType === 'price' ? 'Searching for hotels...' : scraperType === 'info' ? 'Fetching hotel information...' : 'Fetching hotel images...'}
           </p>
         </div>
       )}
@@ -397,7 +427,7 @@ export default function TrackerPage() {
         </div>
       )}
 
-      {!loading && (results?.length > 0 || hotelInfo) && (
+      {!loading && (results?.length > 0 || hotelInfo || hotelImages?.length > 0) && (
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Results</h2>
           
@@ -506,6 +536,27 @@ export default function TrackerPage() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {scraperType === 'images' && hotelImages && hotelImages.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {hotelImages.map((image, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <div className="relative aspect-video">
+                    <img
+                      src={image.url}
+                      alt={image.alt}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  {image.caption && (
+                    <CardContent className="p-4">
+                      <p className="text-sm text-gray-600">{image.caption}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       )}

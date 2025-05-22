@@ -18,39 +18,186 @@ interface Hotel {
   url: string;
 }
 
+interface SearchFormData {
+  location: string;
+  travelers: string;
+  checkIn: string;
+  checkOut: string;
+}
+
+const LoadingScreen = ({ currentStep }: { currentStep: number }) => {
+  const steps = [
+    "Collecting your trip data...",
+    "Searching database and external sources...",
+    "Analyzing best deals and discounts...",
+    "Preparing your personalized results..."
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-center mb-6">Finding the Best Deals for You</h3>
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-center gap-3">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                index < currentStep ? 'bg-green-500' : 
+                index === currentStep ? 'bg-blue-500 animate-pulse' : 'bg-gray-200'
+              }`}>
+                {index < currentStep ? (
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className="text-white text-sm">{index + 1}</span>
+                )}
+              </div>
+              <span className={`${
+                index === currentStep ? 'text-blue-500 font-medium' : 
+                index < currentStep ? 'text-gray-500' : 'text-gray-400'
+              }`}>
+                {step}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function TopHotels() {
   const [topHotels, setTopHotels] = useState<Hotel[]>([]);
   const [remainingHotels, setRemainingHotels] = useState<Hotel[]>([]);
   const [destination, setDestination] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [isCustomSearch, setIsCustomSearch] = useState(false);
+  const [formData, setFormData] = useState<SearchFormData>({
+    location: '',
+    travelers: '2',
+    checkIn: '',
+    checkOut: ''
+  });
+
+  const fetchHotels = async () => {
+    try {
+      const response = await fetch('/api/top-hotels');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch hotels');
+      }
+
+      setTopHotels(data.topHotels);
+      setRemainingHotels(data.remainingHotels);
+      setDestination(data.destination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchHotels = async () => {
-      try {
-        const response = await fetch('/api/top-hotels');
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch hotels');
-        }
-
-        setTopHotels(data.topHotels);
-        setRemainingHotels(data.remainingHotels);
-        setDestination(data.destination);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchHotels();
   }, []);
+
+  const handleReset = () => {
+    // Reset form data
+    setFormData({
+      location: '',
+      travelers: '2',
+      checkIn: '',
+      checkOut: ''
+    });
+    
+    // Clear local storage
+    localStorage.removeItem('hotelDeals');
+    
+    // Reset to daily deals
+    setIsCustomSearch(false);
+    
+    // Fetch original daily deals
+    fetchHotels();
+  };
 
   const handleHotelClick = (url: string) => {
     if (url) {
       window.open(`https://www.google.com${url}`, '_blank');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const simulateLoadingSteps = async () => {
+    for (let i = 0; i < 4; i++) {
+      setLoadingStep(i);
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds per step
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.location) {
+      setError('Please enter a location');
+      return;
+    }
+
+    setSearchLoading(true);
+    setLoadingStep(0);
+    setError(null);
+
+    try {
+      // Start the loading animation
+      simulateLoadingSteps();
+
+      const response = await fetch('/api/hotel-deals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: formData.location,
+          checkIn: formData.checkIn,
+          checkOut: formData.checkOut,
+          travelers: formData.travelers
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch hotel deals');
+      }
+
+      // Update local storage with new deals
+      const storedDeals = localStorage.getItem('hotelDeals');
+      const currentDeals = storedDeals ? JSON.parse(storedDeals) : [];
+      const newDeals = [...currentDeals, ...data.hotelSuggestions];
+      localStorage.setItem('hotelDeals', JSON.stringify(newDeals));
+
+      // Update the page with new deals
+      if (data.hotelSuggestions.length > 0) {
+        setTopHotels(data.hotelSuggestions.slice(0, 3));
+        setRemainingHotels(data.hotelSuggestions.slice(3));
+        setDestination(formData.location);
+        setIsCustomSearch(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch hotel deals');
+    } finally {
+      setSearchLoading(false);
+      setLoadingStep(0);
     }
   };
 
@@ -65,6 +212,7 @@ export default function TopHotels() {
   return (
     <div className="min-h-screen bg-[#f9f9f9]">
       <Header />
+      {searchLoading && <LoadingScreen currentStep={loadingStep} />}
       <main className="bg-[#f9f9f9] px-4">
         {/* Hero Section */}
         <section className="relative w-full h-[650px] md:h-[750px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg flex items-end">
@@ -94,53 +242,132 @@ export default function TopHotels() {
             </div>
           </div>
           {/* Search Bar */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-12 md:bottom-12 w-[95%] md:w-4/5 bg-white rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-between px-4 py-6 gap-4 z-20 search-section">
+          <form onSubmit={handleSearch} className="absolute left-1/2 -translate-x-1/2 bottom-12 md:bottom-12 w-[95%] md:w-4/5 bg-white rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-between px-4 py-6 gap-4 z-20 search-section">
             <div className="grid grid-cols-2 md:flex md:flex-row w-full gap-4">
               {/* Location */}
               <div className="flex flex-col items-start">
-                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="10"/><path d="M11 15v-4"/><path d="M11 7h.01"/></svg>Location</label>
-                <input type="text" placeholder="Location" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="10"/>
+                    <path d="M11 15v-4"/>
+                    <path d="M11 7h.01"/>
+                  </svg>
+                  Location
+                </label>
+                <input 
+                  type="text" 
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  placeholder="Location" 
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" 
+                  required
+                />
               </div>
               {/* Person */}
               <div className="flex flex-col items-start">
-                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 11 0"/></svg>Person</label>
-                <select className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200">
-                  <option>Person</option>
-                  <option>1</option>
-                  <option>2</option>
-                  <option>3</option>
-                  <option>4+</option>
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="7" r="4"/>
+                    <path d="M5.5 21a7.5 7.5 0 0 1 11 0"/>
+                  </svg>
+                  Person
+                </label>
+                <select 
+                  name="travelers"
+                  value={formData.travelers}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200"
+                  required
+                >
+                  <option value="1">1 Person</option>
+                  <option value="2">2 People</option>
+                  <option value="3">3 People</option>
+                  <option value="4">4+ People</option>
                 </select>
               </div>
               {/* Check in */}
               <div className="flex flex-col items-start">
-                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check in</label>
-                <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="16" height="16" rx="2"/>
+                    <path d="M16 2v4"/>
+                    <path d="M8 2v4"/>
+                    <path d="M3 10h16"/>
+                  </svg>
+                  Check in
+                </label>
+                <input 
+                  type="date" 
+                  name="checkIn"
+                  value={formData.checkIn}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" 
+                  required
+                />
               </div>
               {/* Check out */}
               <div className="flex flex-col items-start">
-                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="16" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h16"/></svg>Check out</label>
-                <input type="date" className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" />
+                <label className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="16" height="16" rx="2"/>
+                    <path d="M16 2v4"/>
+                    <path d="M8 2v4"/>
+                    <path d="M3 10h16"/>
+                  </svg>
+                  Check out
+                </label>
+                <input 
+                  type="date" 
+                  name="checkOut"
+                  value={formData.checkOut}
+                  onChange={handleInputChange}
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all duration-200" 
+                  required
+                />
               </div>
             </div>
             {/* Search Button */}
-            <button className="w-full md:w-auto bg-black text-white font-semibold rounded-xl px-8 py-4 mt-2 md:mt-0 text-lg transition hover:bg-gray-900">Search</button>
-          </div>
+            <button 
+              type="submit"
+              disabled={searchLoading}
+              className="w-full md:w-auto bg-black text-white font-semibold rounded-xl px-8 py-4 mt-2 md:mt-0 text-lg transition hover:bg-gray-900 disabled:bg-gray-400"
+            >
+              {searchLoading ? 'Searching...' : isCustomSearch ? 'Update Search' : 'Search'}
+            </button>
+          </form>
         </section>
 
         {/* Amazing Hotels Section */}
         <section className="max-w-8xl mx-auto mt-24 mb-16 px-2 md:px-2">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">
-            Daily Hotel Deals
+            {isCustomSearch ? 'Your Customized Hotel Deals' : 'Daily Hotel Deals'}
             <br />
-            <span className="text-2xl md:text-3xl text-gray-600">Featured Destination: {destination}</span>
+            <span className="text-2xl md:text-3xl text-gray-600">
+              {isCustomSearch 
+                ? `For ${formData.travelers} travelers in ${destination}`
+                : `Featured Destination: ${destination}`
+              }
+            </span>
           </h2>
           <div className="flex flex-col items-center gap-4 mb-10">
             <p className="text-gray-600 text-lg text-center max-w-2xl">
-              To get more deals and customize your search, please click on the button below or enter your trip preferences in the search component above.
+              {isCustomSearch 
+                ? 'These are your personalized hotel suggestions based on your trip preferences. You can modify your search or reset to view our daily featured deals.'
+                : 'To get more deals and customize your search, please click on the button below or enter your trip preferences in the search component above.'
+              }
             </p>
             <div className="flex flex-col items-center gap-2">
-              <ScrollToSearch />
+              {isCustomSearch ? (
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Reset to Daily Deals
+                </button>
+              ) : (
+                <ScrollToSearch />
+              )}
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">

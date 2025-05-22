@@ -130,7 +130,11 @@ export default function TopHotels() {
 
         {/* Amazing Hotels Section */}
         <section className="max-w-8xl mx-auto mt-24 mb-16 px-2 md:px-2">
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Daily Hotel Deals for {destination}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">
+            Daily Hotel Deals
+            <br />
+            <span className="text-2xl md:text-3xl text-gray-600">Featured Destination: {destination}</span>
+          </h2>
           <div className="flex flex-col items-center gap-4 mb-10">
             <p className="text-gray-600 text-lg text-center max-w-2xl">
               To get more deals and customize your search, please click on the button below or enter your trip preferences in the search component above.

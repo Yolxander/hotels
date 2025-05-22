@@ -5,6 +5,8 @@ import Image from "next/image"
 import { Header } from "@/components/header"
 import Footer from '../components/Footer'
 import ScrollToSearch from '../components/ScrollToSearch'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
 
 interface Hotel {
   id: number;
@@ -75,6 +77,7 @@ export default function TopHotels() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [isCustomSearch, setIsCustomSearch] = useState(false);
+  const { user } = useAuth();
   const [formData, setFormData] = useState<SearchFormData>({
     location: '',
     travelers: '2',
@@ -84,6 +87,7 @@ export default function TopHotels() {
 
   const fetchHotels = async () => {
     try {
+      console.log('=== fetchHotels START ===');
       const response = await fetch('/api/top-hotels');
       const data = await response.json();
       
@@ -91,9 +95,41 @@ export default function TopHotels() {
         throw new Error(data.error || 'Failed to fetch hotels');
       }
 
-      setTopHotels(data.topHotels);
-      setRemainingHotels(data.remainingHotels);
+      console.log('fetchHotels data:', data);
+
+      // Create a Set of hotel names to track uniqueness
+      const uniqueHotels = new Set();
+      const uniqueTopHotels = data.topHotels.filter((hotel: Hotel) => {
+        if (uniqueHotels.has(hotel.name)) {
+          return false;
+        }
+        uniqueHotels.add(hotel.name);
+        return true;
+      });
+
+      // If we don't have 3 unique top hotels, fill from remaining hotels
+      let finalTopHotels = [...uniqueTopHotels];
+      if (finalTopHotels.length < 3) {
+        const remainingUniqueHotels = data.remainingHotels.filter((hotel: Hotel) => {
+          if (uniqueHotels.has(hotel.name)) {
+            return false;
+          }
+          uniqueHotels.add(hotel.name);
+          return true;
+        });
+        finalTopHotels = [...finalTopHotels, ...remainingUniqueHotels].slice(0, 3);
+      }
+
+      // Update remaining hotels to exclude the ones we used in top hotels
+      const remainingHotels = data.remainingHotels.filter((hotel: Hotel) => 
+        !finalTopHotels.some(topHotel => topHotel.name === hotel.name)
+      );
+
+      console.log('Setting final top hotels:', finalTopHotels);
+      setTopHotels(finalTopHotels);
+      setRemainingHotels(remainingHotels);
       setDestination(data.destination);
+      console.log('=== fetchHotels END ===');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
     } finally {
@@ -102,7 +138,9 @@ export default function TopHotels() {
   };
 
   useEffect(() => {
+    console.log('=== useEffect START ===');
     fetchHotels();
+    console.log('=== useEffect END ===');
   }, []);
 
   const handleReset = () => {
@@ -130,6 +168,69 @@ export default function TopHotels() {
     }
   };
 
+  const handleMarkAsDiscovered = async (hotel: Hotel) => {
+    try {
+      // Get current date and add 7 days for checkout
+      const today = new Date();
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => {
+        return date.toISOString().split('T')[0];
+      };
+
+      // First fetch hotel image
+      const imageResponse = await fetch('/api/hotel-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: hotel.name
+        }),
+      });
+
+      let imageUrl = '/placeholder.svg?height=200&width=400';
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        if (imageData.hotelImages && imageData.hotelImages.length > 0) {
+          imageUrl = imageData.hotelImages[0].url;
+        }
+      }
+
+      // Save the booking to the database
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings')
+        .insert([
+          {
+            user_id: user?.id,
+            hotel_name: hotel.name,
+            location: hotel.location,
+            check_in_date: formatDate(today),
+            check_out_date: formatDate(nextWeek),
+            original_price: parseFloat(hotel.price.replace(/[^0-9.]/g, '')),
+            current_price: parseFloat(hotel.price.replace(/[^0-9.]/g, '')),
+            savings: 0,
+            room_type: 'Standard Room',
+            image_url: imageUrl,
+            is_discovered: true
+          }
+        ])
+        .select()
+        .single();
+
+      if (bookingError) {
+        throw bookingError;
+      }
+
+      // Show success message
+      alert('Hotel marked as discovered and saved to your bookings!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark hotel as discovered');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -147,6 +248,7 @@ export default function TopHotels() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== handleSearch START ===');
     
     if (!formData.location) {
       setError('Please enter a location');
@@ -175,6 +277,7 @@ export default function TopHotels() {
       });
 
       const data = await response.json();
+      console.log('handleSearch data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch hotel deals');
@@ -188,11 +291,23 @@ export default function TopHotels() {
 
       // Update the page with new deals
       if (data.hotelSuggestions.length > 0) {
-        setTopHotels(data.hotelSuggestions.slice(0, 3));
-        setRemainingHotels(data.hotelSuggestions.slice(3));
+        // Create a Set of hotel names to track uniqueness
+        const uniqueHotels = new Set();
+        const uniqueSuggestions = data.hotelSuggestions.filter((hotel: Hotel) => {
+          if (uniqueHotels.has(hotel.name)) {
+            return false;
+          }
+          uniqueHotels.add(hotel.name);
+          return true;
+        });
+
+        console.log('Setting top hotels with unique suggestions:', uniqueSuggestions.slice(0, 3));
+        setTopHotels(uniqueSuggestions.slice(0, 3));
+        setRemainingHotels(uniqueSuggestions.slice(3));
         setDestination(formData.location);
         setIsCustomSearch(true);
       }
+      console.log('=== handleSearch END ===');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch hotel deals');
     } finally {
@@ -390,11 +505,25 @@ export default function TopHotels() {
                     <span>{'★'.repeat(Math.round(parseFloat(topHotels[0].rating)))}</span>
                     <span className="text-gray-200 text-sm">({topHotels[0].reviews} Reviews)</span>
                   </div>
-                  <span className="absolute bottom-8 right-8 text-white bg-white/20 rounded-full p-2">
-                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  </span>
+                  <div className="absolute bottom-8 right-8 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsDiscovered(topHotels[0]);
+                      }}
+                      className="bg-white/20 hover:bg-white/30 text-white rounded-full p-2 transition-colors"
+                      title="Mark as discovered"
+                    >
+                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                    <span className="bg-white/20 text-white rounded-full p-2">
+                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
@@ -419,11 +548,25 @@ export default function TopHotels() {
                       <span>{'★'.repeat(Math.round(parseFloat(hotel.rating)))}</span>
                       <span className="text-gray-200 text-xs">({hotel.reviews} Reviews)</span>
                     </div>
-                    <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2">
-                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    </span>
+                    <div className="absolute bottom-6 right-6 flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsDiscovered(hotel);
+                        }}
+                        className="bg-white/20 hover:bg-white/30 text-white rounded-full p-2 transition-colors"
+                        title="Mark as discovered"
+                      >
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                      <span className="bg-white/20 text-white rounded-full p-2">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 18l6-6-6-6" />
+                        </svg>
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -454,7 +597,7 @@ export default function TopHotels() {
             {remainingHotels.map((hotel) => (
               <div 
                 key={hotel.id} 
-                className="rounded-2xl overflow-hidden shadow bg-white cursor-pointer hover:shadow-lg transition-shadow"
+                className="rounded-2xl overflow-hidden shadow bg-white cursor-pointer hover:shadow-lg transition-shadow relative group"
                 onClick={() => handleHotelClick(hotel.url)}
               >
                 <img 
@@ -470,6 +613,18 @@ export default function TopHotels() {
                     <span className="text-gray-500 text-sm">({hotel.reviews} Reviews)</span>
                   </div>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkAsDiscovered(hotel);
+                  }}
+                  className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2.5 shadow-md transition-all duration-200 hover:scale-110"
+                  title="Mark as discovered"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
               </div>
             ))}
           </div>

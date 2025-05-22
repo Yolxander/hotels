@@ -14,4 +14,5 @@ export interface Booking {
   updated_at: string;
   hasRoomListings: boolean;
   is_tracking?: boolean;
+  is_discovered?: boolean;
 } 

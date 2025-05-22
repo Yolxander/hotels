@@ -737,12 +737,30 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-8">
-            <BookingList 
-              bookings={bookings} 
-              loading={loading}
-              onRebookNow={handleRebookNow}
-              onTrackingUpdate={fetchBookings}
-            />
+            <Tabs defaultValue="regular" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="regular">Regular Bookings</TabsTrigger>
+                <TabsTrigger value="discovered">Discovered Hotels</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="regular">
+                <BookingList 
+                  bookings={bookings.filter(booking => !booking.is_discovered)} 
+                  loading={loading}
+                  onRebookNow={handleRebookNow}
+                  onTrackingUpdate={fetchBookings}
+                />
+              </TabsContent>
+
+              <TabsContent value="discovered">
+                <BookingList 
+                  bookings={bookings.filter(booking => booking.is_discovered)} 
+                  loading={loading}
+                  onRebookNow={handleRebookNow}
+                  onTrackingUpdate={fetchBookings}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>

@@ -145,13 +145,13 @@ export async function POST(request: Request) {
     await page.waitForSelector('ul[jsname="xl07Ob"][aria-live="polite"]', { timeout: 10000 });
     console.log('Guest dropdown menu appeared');
 
-    // Find and click the desired guest count (3 guests)
+    // Find and click the desired guest count
     const guestOptions = await page.$$('li[role="menuitemradio"]');
     for (const option of guestOptions) {
       const text = await option.textContent();
-      if (text?.includes('3 guests')) {
+      if (text?.includes(`${travelers} guests`)) {
         await option.click();
-        console.log('Selected 3 guests');
+        console.log(`Selected ${travelers} guests`);
         break;
       }
     }

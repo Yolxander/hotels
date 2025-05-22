@@ -71,7 +71,8 @@ export default function TrackerPage() {
     check_out_date: new Date(),
     room_type: "",
     original_price: "",
-    email: ""
+    email: "",
+    travelers: '2'
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -110,7 +111,7 @@ export default function TrackerPage() {
             destination: formData.location,
             checkIn: formData.check_in_date.toISOString().split('T')[0],
             checkOut: formData.check_out_date.toISOString().split('T')[0],
-            travelers: formData.room_type
+            travelers: formData.travelers
           }),
         });
 
@@ -241,6 +242,36 @@ export default function TrackerPage() {
     } finally {
       console.log('=== handleSubmit END ===');
       setLoading(false);
+    }
+  };
+
+  const handleSaveDeals = async () => {
+    if (!results) return;
+
+    try {
+      const response = await fetch('/api/save-hotel-deals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hotelDeals: results,
+          destination: formData.location,
+          checkIn: formData.check_in_date.toISOString().split('T')[0],
+          checkOut: formData.check_out_date.toISOString().split('T')[0],
+          travelers: formData.travelers
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert(`Successfully saved ${data.count} hotel deals!`);
+      } else {
+        alert('Failed to save hotel deals: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error saving hotel deals:', error);
+      alert('Failed to save hotel deals');
     }
   };
 
@@ -378,6 +409,19 @@ export default function TrackerPage() {
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
+              disabled={loading}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="travelers">Number of Travelers</Label>
+            <Input
+              id="travelers"
+              type="number"
+              min="1"
+              max="6"
+              value={formData.travelers}
+              onChange={(e) => handleInputChange("travelers", e.target.value)}
               disabled={loading}
             />
           </div>
@@ -671,82 +715,102 @@ export default function TrackerPage() {
           )}
 
           {scraperType === 'deals' && results && results.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((listing, index) => {
-                const dealListing = listing as DealRoomListing;
-                return (
-                  <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    {dealListing.image && (
-                      <div className="relative h-48 w-full">
-                        <img
-                          src={dealListing.image}
-                          alt={dealListing.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold mb-2">{dealListing.name}</h3>
-                      {dealListing.location && (
-                        <p className="text-gray-600 text-sm mb-2">
-                          <i className="fas fa-map-marker-alt mr-2"></i>
-                          {dealListing.location}
-                        </p>
-                      )}
-                      <div className="flex items-center mb-2">
-                        {dealListing.rating && (
-                          <span className="text-yellow-500 mr-2">
-                            <i className="fas fa-star"></i> {dealListing.rating}
-                          </span>
-                        )}
-                        {dealListing.reviews && (
-                          <span className="text-gray-600 text-sm">
-                            ({dealListing.reviews} reviews)
-                          </span>
-                        )}
-                      </div>
-                      {dealListing.price && (
-                        <p className="text-xl font-bold text-green-600 mb-2">
-                          {dealListing.price}
-                        </p>
-                      )}
-                      {dealListing.deal && (
-                        <p className="text-red-600 font-semibold mb-2">
-                          <i className="fas fa-tag mr-2"></i>
-                          {dealListing.deal}
-                        </p>
-                      )}
-                      {dealListing.amenities && dealListing.amenities.length > 0 && (
-                        <div className="mb-2">
-                          <p className="text-sm text-gray-600 mb-1">Amenities:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {dealListing.amenities.map((amenity, i) => (
-                              <span
-                                key={i}
-                                className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
-                              >
-                                {amenity}
-                              </span>
-                            ))}
+            <>
+              <div className="mt-4">
+                <button
+                  onClick={handleSaveDeals}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Update Daily Hotel Deals
+                </button>
+              </div>
+
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Found Hotel Suggestions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {results.map((listing, index) => {
+                    const dealListing = listing as DealRoomListing;
+                    return (
+                      <Card key={index} className="flex flex-col">
+                        {dealListing.image && (
+                          <div className="relative h-48 w-full">
+                            <img
+                              src={dealListing.image}
+                              alt={dealListing.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                        </div>
-                      )}
-                      {dealListing.description && (
-                        <p className="text-gray-600 text-sm mb-4">{dealListing.description}</p>
-                      )}
-                      <a
-                        href={dealListing.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                      >
-                        View Deal
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                        )}
+                        <CardHeader>
+                          <CardTitle className="text-lg font-semibold">{dealListing.name}</CardTitle>
+                          {dealListing.location && (
+                            <CardDescription className="text-sm text-gray-500">
+                              <i className="fas fa-map-marker-alt mr-2"></i>
+                              {dealListing.location}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <div className="space-y-2">
+                            <div className="flex items-center mb-2">
+                              {dealListing.rating && (
+                                <span className="text-yellow-500 mr-2">
+                                  <i className="fas fa-star"></i> {dealListing.rating}
+                                </span>
+                              )}
+                              {dealListing.reviews && (
+                                <span className="text-gray-600 text-sm">
+                                  ({dealListing.reviews} reviews)
+                                </span>
+                              )}
+                            </div>
+                            {dealListing.price && (
+                              <p className="text-xl font-bold text-green-600 mb-2">
+                                {dealListing.price}
+                              </p>
+                            )}
+                            {dealListing.deal && (
+                              <p className="text-red-600 font-semibold mb-2">
+                                <i className="fas fa-tag mr-2"></i>
+                                {dealListing.deal}
+                              </p>
+                            )}
+                            {dealListing.amenities && dealListing.amenities.length > 0 && (
+                              <div className="mb-2">
+                                <p className="text-sm text-gray-600 mb-1">Amenities:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {dealListing.amenities.map((amenity, i) => (
+                                    <span
+                                      key={i}
+                                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+                                    >
+                                      {amenity}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {dealListing.description && (
+                              <p className="text-gray-600 text-sm mb-4">{dealListing.description}</p>
+                            )}
+                          </div>
+                        </CardContent>
+                        <CardFooter>
+                          <a
+                            href={dealListing.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full text-center"
+                          >
+                            View Deal
+                          </a>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}

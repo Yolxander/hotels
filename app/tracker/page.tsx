@@ -355,17 +355,17 @@ export default function TrackerPage() {
               </div>
 
               {scraperType === 'price' && (
-                <div className="grid gap-2">
-                  <Label htmlFor="original-price">Original Price*</Label>
-                  <Input
-                    id="original-price"
-                    placeholder="e.g. 320"
-                    type="number"
-                    value={formData.original_price}
-                    onChange={(e) => handleInputChange("original_price", e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="original-price">Original Price*</Label>
+                <Input
+                  id="original-price"
+                  placeholder="e.g. 320"
+                  type="number"
+                  value={formData.original_price}
+                  onChange={(e) => handleInputChange("original_price", e.target.value)}
+                  disabled={loading}
+                />
+              </div>
               )}
             </>
           ) : null}
@@ -392,6 +392,38 @@ export default function TrackerPage() {
           ) : (
             scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : scraperType === 'images' ? 'Get Hotel Images' : 'Get Hotel Deals'
           )}
+        </Button>
+
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full mt-2"
+          onClick={async () => {
+            try {
+              const response = await fetch('/api/open-browser', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  destination: formData.hotel_name,
+                  location: formData.location,
+                  checkInDate: formData.check_in_date.toISOString().split('T')[0],
+                  checkOutDate: formData.check_out_date.toISOString().split('T')[0],
+                  roomType: formData.room_type
+                }),
+              });
+              
+              if (!response.ok) {
+                throw new Error('Failed to open browser');
+              }
+            } catch (error) {
+              console.error('Error opening browser:', error);
+              setError('Failed to open browser. Please try again.');
+            }
+          }}
+        >
+          Open Browser for Selectors
         </Button>
       </form>
 
@@ -490,21 +522,21 @@ export default function TrackerPage() {
               {results.map((listing, index) => {
                 const priceListing = listing as PriceRoomListing;
                 return (
-                  <Card key={index} className="flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold">
+                <Card key={index} className="flex flex-col">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">
                         {priceListing.roomType}
-                      </CardTitle>
+                    </CardTitle>
                       <CardDescription className="text-blue-600">
                         {priceListing.provider}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <div className="space-y-2">
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <div className="space-y-2">
                         <div className="flex items-baseline gap-2">
-                          <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-green-600">
                             {priceListing.totalPrice}
-                          </p>
+                      </p>
                           {priceListing.basePrice !== priceListing.totalPrice && (
                             <p className="text-sm text-gray-500 line-through">
                               {priceListing.basePrice}
@@ -535,9 +567,9 @@ export default function TrackerPage() {
                             Book on {priceListing.provider}
                           </a>
                         )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </CardContent>
+                </Card>
                 );
               })}
             </div>
@@ -618,14 +650,14 @@ export default function TrackerPage() {
                   <div className="relative aspect-video w-full">
                     <div className="absolute inset-0">
                       <Image
-                        src={image.url}
-                        alt={image.alt}
+                      src={image.url}
+                      alt={image.alt}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
                         unoptimized
                         priority={index === 0}
-                      />
+                    />
                     </div>
                   </div>
                   {image.caption && (

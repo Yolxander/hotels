@@ -132,17 +132,38 @@ export async function POST(request: Request) {
     await randomDelay();
     console.log('Search submitted');
 
-    // Scroll the page randomly to simulate human behavior
-    await page.evaluate(() => {
-      window.scrollBy(0, Math.random() * 100);
-    });
-    await randomDelay();
-    console.log('Page scrolled');
+    // Wait for the guest selection component
+    console.log('Waiting for guest selection component...');
+    await page.waitForSelector('div[jsname="FtsEs"]', { timeout: 30000 });
+    console.log('Found guest selection component');
 
-    // Wait for the hotel suggestions to load with increased timeout
+    // Click the guest selection component
+    await page.click('div[jsname="FtsEs"]');
+    console.log('Clicked guest selection component');
+
+    // Wait for the guest dropdown menu
+    await page.waitForSelector('ul[jsname="xl07Ob"][aria-live="polite"]', { timeout: 10000 });
+    console.log('Guest dropdown menu appeared');
+
+    // Find and click the desired guest count (3 guests)
+    const guestOptions = await page.$$('li[role="menuitemradio"]');
+    for (const option of guestOptions) {
+      const text = await option.textContent();
+      if (text?.includes('3 guests')) {
+        await option.click();
+        console.log('Selected 3 guests');
+        break;
+      }
+    }
+
+    // Wait for the page to update with new guest count
+    await page.waitForTimeout(3000);
+    console.log('Page updated with new guest count');
+
+    // Wait for the hotel suggestions to load
     console.log('Waiting for hotel suggestions to load...');
     try {
-      await page.waitForSelector('div[aria-label="Hotel suggestions"]', { timeout: 30000 });
+      await page.waitForSelector('div[class*="uaTTDe"]', { timeout: 30000 });
       console.log('Hotel suggestions container found');
     } catch (error) {
       console.error('Hotel suggestions not found:', error);
@@ -157,41 +178,64 @@ export async function POST(request: Request) {
     console.log('Extracting hotel suggestions...');
     const hotelSuggestions = await page.evaluate(() => {
       const suggestions: HotelSuggestion[] = [];
-      const hotelElements = document.querySelectorAll('div[aria-label="Hotel suggestions"] a');
+      const hotelElements = document.querySelectorAll('div[class*="uaTTDe"]');
       console.log(`Found ${hotelElements.length} hotel elements`);
       
-      hotelElements.forEach((element, index) => {
-        const anchor = element as HTMLAnchorElement;
-        
-        // Extract image URL
-        const imgElement = element.querySelector('img');
-        const imageUrl = imgElement?.src || imgElement?.getAttribute('data-src') || '';
-        
+      // Limit to 10 results
+      const limitedElements = Array.from(hotelElements).slice(0, 10);
+      
+      limitedElements.forEach((element, index) => {
+        // Extract hotel name
+        const nameElement = element.querySelector('h2.BgYkof');
+        const name = nameElement?.textContent || '';
+
+        // Extract price
+        const priceElement = element.querySelector('.W9vOvb.nDkDDb');
+        const price = priceElement?.textContent || '';
+
+        // Extract rating
+        const ratingElement = element.querySelector('.KFi5wf');
+        const rating = ratingElement?.textContent || '';
+
+        // Extract reviews
+        const reviewsElement = element.querySelector('.jdzyld');
+        const reviews = reviewsElement?.textContent?.replace(/[()]/g, '') || '';
+
+        // Extract deal
+        const dealElement = element.querySelector('.PymDFe.YAMDU');
+        const deal = dealElement?.textContent || '';
+
+        // Extract URL
+        const urlElement = element.querySelector('a.PVOOXe');
+        const url = urlElement?.getAttribute('href') || '';
+
+        // Extract image
+        const imgElement = element.querySelector('img.x7VXS');
+        const image = imgElement?.getAttribute('src') || '';
+
         // Extract location
-        const locationElement = element.querySelector('.YwF3uc .RDApEe');
+        const locationElement = element.querySelector('.uTUoTb.pWBec');
         const location = locationElement?.textContent || '';
-        
+
         // Extract amenities
-        const amenitiesElements = element.querySelectorAll('.YwF3uc .RDApEe');
-        const amenities = Array.from(amenitiesElements)
-          .map(el => el.textContent || '')
-          .filter(text => text && !text.includes('reviews') && !text.includes('stars'));
-        
+        const amenitiesElements = element.querySelectorAll('.LtjZ2d.sSHqwe.ogfYpf.QYEgn');
+        const amenities = Array.from(amenitiesElements).map(el => el.textContent || '');
+
         // Extract description
-        const descriptionElement = element.querySelector('.YwF3uc .RDApEe');
+        const descriptionElement = element.querySelector('.lXJaOd');
         const description = descriptionElement?.textContent || '';
 
         const hotelData: HotelSuggestion = {
-          name: element.querySelector('.mtlZOe .BTPx6e')?.textContent || '',
-          price: element.querySelector('.YwF3uc .sRlU8b')?.textContent || '',
-          rating: element.querySelector('.j4Tqqd .Y0A0hc')?.textContent || '',
-          reviews: element.querySelector('.RDApEe')?.textContent || '',
-          deal: element.querySelector('.dLtZ8b')?.textContent || '',
-          url: anchor.href || '',
-          image: imageUrl,
-          location: location,
-          amenities: amenities,
-          description: description
+          name,
+          price,
+          rating,
+          reviews,
+          deal,
+          url,
+          image,
+          location,
+          amenities,
+          description
         };
         console.log(`Hotel ${index + 1}:`, hotelData);
         suggestions.push(hotelData);

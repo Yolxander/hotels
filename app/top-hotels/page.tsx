@@ -1,9 +1,58 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from "next/image"
 import { Header } from "@/components/header"
 import Footer from '../components/Footer'
 import ScrollToSearch from '../components/ScrollToSearch'
 
+interface Hotel {
+  id: number;
+  name: string;
+  location: string;
+  rating: string;
+  reviews: string;
+  image: string;
+  price: string;
+  deal: string;
+}
+
 export default function TopHotels() {
+  const [topHotels, setTopHotels] = useState<Hotel[]>([]);
+  const [remainingHotels, setRemainingHotels] = useState<Hotel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        const response = await fetch('/api/top-hotels');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch hotels');
+        }
+
+        setTopHotels(data.topHotels);
+        setRemainingHotels(data.remainingHotels);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHotels();
+  }, []);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center min-h-screen text-red-500">{error}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-[#f9f9f9]">
       <Header />
@@ -87,49 +136,54 @@ export default function TopHotels() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Left: Large Card */}
-            <div className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end">
-              <img src="/hotel/emerald-valley-lodge.jpg" alt="Emerald Valley Lodge" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="relative z-10 p-8">
-                <div className="text-white text-2xl md:text-3xl font-bold mb-1">Emerald Valley Lodge</div>
-                <div className="text-gray-200 text-base mb-2">Palm Jumeirah, Dubai</div>
-                <div className="flex items-center gap-2 text-yellow-400 mb-1">
-                  <span>★★★★★</span>
-                  <span className="text-gray-200 text-sm">(5525 Visitors)</span>
+            {topHotels[0] && (
+              <div className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end">
+                <img 
+                  src={topHotels[0].image || '/hotel/placeholder.jpg'} 
+                  alt={topHotels[0].name} 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="relative z-10 p-8">
+                  <div className="text-white text-2xl md:text-3xl font-bold mb-1">{topHotels[0].name}</div>
+                  <div className="text-gray-200 text-base mb-2">{topHotels[0].location}</div>
+                  <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                    <span>{'★'.repeat(Math.round(parseFloat(topHotels[0].rating)))}</span>
+                    <span className="text-gray-200 text-sm">({topHotels[0].reviews} Reviews)</span>
+                  </div>
+                  <span className="absolute bottom-8 right-8 text-white bg-white/20 rounded-full p-2">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </span>
                 </div>
-                <span className="absolute bottom-8 right-8 text-white bg-white/20 rounded-full p-2"><svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
               </div>
-            </div>
+            )}
             {/* Right: Two Small Cards Stacked */}
             <div className="flex flex-col gap-6 h-[380px] md:h-[540px]">
-              {/* Small Card 1 */}
-              <div className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
-                <img src="/hotel/saroza-hotel-pool.jpg" alt="Saroza Hotel" className="absolute inset-0 w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="relative z-10 p-6">
-                  <div className="text-white text-xl font-bold mb-1">Saroza Hotel</div>
-                  <div className="text-gray-200 text-sm mb-1">Malang, Indonesia</div>
-                  <div className="flex items-center gap-2 text-yellow-400 mb-1">
-                    <span>★★★★☆</span>
-                    <span className="text-gray-200 text-xs">(4983 Visitors)</span>
+              {topHotels.slice(1, 3).map((hotel, index) => (
+                <div key={hotel.id} className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
+                  <img 
+                    src={hotel.image || '/hotel/placeholder.jpg'} 
+                    alt={hotel.name} 
+                    className="absolute inset-0 w-full h-full object-cover" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="relative z-10 p-6">
+                    <div className="text-white text-xl font-bold mb-1">{hotel.name}</div>
+                    <div className="text-gray-200 text-sm mb-1">{hotel.location}</div>
+                    <div className="flex items-center gap-2 text-yellow-400 mb-1">
+                      <span>{'★'.repeat(Math.round(parseFloat(hotel.rating)))}</span>
+                      <span className="text-gray-200 text-xs">({hotel.reviews} Reviews)</span>
+                    </div>
+                    <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2">
+                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </span>
                   </div>
-                  <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
                 </div>
-              </div>
-              {/* Small Card 2 */}
-              <div className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
-                <img src="/hotel/saroza-hotel-room.jpg" alt="Saroza Hotel" className="absolute inset-0 w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="relative z-10 p-6">
-                  <div className="text-white text-xl font-bold mb-1">Saroza Hotel</div>
-                  <div className="text-gray-200 text-sm mb-1">Malang, Indonesia</div>
-                  <div className="flex items-center gap-2 text-yellow-400 mb-1">
-                    <span>★★★★☆</span>
-                    <span className="text-gray-200 text-xs">(4983 Visitors)</span>
-                  </div>
-                  <span className="absolute bottom-6 right-6 text-white bg-white/20 rounded-full p-2"><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -145,84 +199,32 @@ export default function TopHotels() {
               <div className="relative w-full md:w-[340px]">
                 <input type="text" placeholder="Find Hotels" className="w-full rounded-full bg-gray-100 py-3 pl-6 pr-12 text-lg shadow focus:outline-none" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                  </svg>
                 </span>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {/* Card 1 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/emerald-valley-lodge-2.jpg" alt="Emerald Valley Lodge" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Emerald Valley Lodge</div>
-                <div className="text-gray-500 text-sm mb-2">New Zealand, Australia</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(8768 Visitors)</span>
+            {remainingHotels.map((hotel) => (
+              <div key={hotel.id} className="rounded-2xl overflow-hidden shadow bg-white">
+                <img 
+                  src={hotel.image || '/hotel/placeholder.jpg'} 
+                  alt={hotel.name} 
+                  className="w-full h-48 object-cover" 
+                />
+                <div className="p-5">
+                  <div className="font-bold text-xl mb-1">{hotel.name}</div>
+                  <div className="text-gray-500 text-sm mb-2">{hotel.location}</div>
+                  <div className="flex items-center gap-2 text-yellow-500 text-base">
+                    <span>{'★'.repeat(Math.round(parseFloat(hotel.rating)))}</span>
+                    <span className="text-gray-500 text-sm">({hotel.reviews} Reviews)</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            {/* Card 2 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/summer-resort.jpg" alt="Summer Resort" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Summer Resort</div>
-                <div className="text-gray-500 text-sm mb-2">Manchester, London</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(9768 Visitors)</span>
-                </div>
-              </div>
-            </div>
-            {/* Card 3 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/greeny-hotel.jpg" alt="Greeny Hotel" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Greeny Hotel</div>
-                <div className="text-gray-500 text-sm mb-2">Malang, Indonesia</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(168 Visitors)</span>
-                </div>
-              </div>
-            </div>
-            {/* Card 4 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/golden-horizon.jpg" alt="Golden Horizon Hotel" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Golden Horizon Hotel</div>
-                <div className="text-gray-500 text-sm mb-2">New York, USA</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(3455 Visitors)</span>
-                </div>
-              </div>
-            </div>
-            {/* Card 5 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/boulevard.jpg" alt="Boulevard" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Boulevard</div>
-                <div className="text-gray-500 text-sm mb-2">Tokyo, Japan</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(768 Visitors)</span>
-                </div>
-              </div>
-            </div>
-            {/* Card 6 */}
-            <div className="rounded-2xl overflow-hidden shadow bg-white">
-              <img src="/hotel/palm-yard.jpg" alt="Palm Yard" className="w-full h-48 object-cover" />
-              <div className="p-5">
-                <div className="font-bold text-xl mb-1">Palm Yard</div>
-                <div className="text-gray-500 text-sm mb-2">Catalan, Barcelona</div>
-                <div className="flex items-center gap-2 text-yellow-500 text-base">
-                  <span>★★★★★</span>
-                  <span className="text-gray-500 text-sm">(3768 Visitors)</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       </main>

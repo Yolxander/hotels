@@ -44,9 +44,13 @@ export async function GET() {
       );
     }
 
+    // Get the destination from the first hotel (they should all have the same destination)
+    const destination = topHotels[0]?.destination || '';
+
     return NextResponse.json({
       topHotels,
-      remainingHotels
+      remainingHotels,
+      destination
     });
   } catch (error) {
     console.error('Error in top-hotels:', error);

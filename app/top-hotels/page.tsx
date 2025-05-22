@@ -15,11 +15,13 @@ interface Hotel {
   image: string;
   price: string;
   deal: string;
+  url: string;
 }
 
 export default function TopHotels() {
   const [topHotels, setTopHotels] = useState<Hotel[]>([]);
   const [remainingHotels, setRemainingHotels] = useState<Hotel[]>([]);
+  const [destination, setDestination] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +37,7 @@ export default function TopHotels() {
 
         setTopHotels(data.topHotels);
         setRemainingHotels(data.remainingHotels);
+        setDestination(data.destination);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch hotels');
       } finally {
@@ -44,6 +47,12 @@ export default function TopHotels() {
 
     fetchHotels();
   }, []);
+
+  const handleHotelClick = (url: string) => {
+    if (url) {
+      window.open(`https://www.google.com${url}`, '_blank');
+    }
+  };
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -121,23 +130,22 @@ export default function TopHotels() {
 
         {/* Amazing Hotels Section */}
         <section className="max-w-8xl mx-auto mt-24 mb-16 px-2 md:px-2">
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Our Curated<br className='md:hidden'/> Hotel Collection</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-2">Daily Hotel Deals for {destination}</h2>
           <div className="flex flex-col items-center gap-4 mb-10">
             <p className="text-gray-600 text-lg text-center max-w-2xl">
-              <span className="font-semibold text-gray-800">Handpicked luxury stays</span> that our experts love. 
-              <span className="block mt-2 text-gray-700">Ready to find your perfect match?</span>
+              To get more deals and customize your search, please click on the button below or enter your trip preferences in the search component above.
             </p>
             <div className="flex flex-col items-center gap-2">
-              <p className="text-gray-600 text-base text-center">
-                Enter your travel details above and we'll customize this entire page just for you
-              </p>
               <ScrollToSearch />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Left: Large Card */}
             {topHotels[0] && (
-              <div className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end">
+              <div 
+                className="relative rounded-3xl overflow-hidden shadow-lg h-[380px] md:h-[540px] flex flex-col justify-end cursor-pointer"
+                onClick={() => handleHotelClick(topHotels[0].url)}
+              >
                 <img 
                   src={topHotels[0].image || '/hotel/placeholder.jpg'} 
                   alt={topHotels[0].name} 
@@ -162,7 +170,11 @@ export default function TopHotels() {
             {/* Right: Two Small Cards Stacked */}
             <div className="flex flex-col gap-6 h-[380px] md:h-[540px]">
               {topHotels.slice(1, 3).map((hotel, index) => (
-                <div key={hotel.id} className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end">
+                <div 
+                  key={hotel.id} 
+                  className="relative rounded-3xl overflow-hidden shadow-lg flex-1 min-h-[120px] flex flex-col justify-end cursor-pointer"
+                  onClick={() => handleHotelClick(hotel.url)}
+                >
                   <img 
                     src={hotel.image || '/hotel/placeholder.jpg'} 
                     alt={hotel.name} 
@@ -209,7 +221,11 @@ export default function TopHotels() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {remainingHotels.map((hotel) => (
-              <div key={hotel.id} className="rounded-2xl overflow-hidden shadow bg-white">
+              <div 
+                key={hotel.id} 
+                className="rounded-2xl overflow-hidden shadow bg-white cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => handleHotelClick(hotel.url)}
+              >
                 <img 
                   src={hotel.image || '/hotel/placeholder.jpg'} 
                   alt={hotel.name} 
@@ -230,5 +246,5 @@ export default function TopHotels() {
       </main>
       <Footer />
     </div>
-  )
+  );
 } 

@@ -10,7 +10,7 @@ async function main(destination, checkInDate, checkOutDate) {
 
     // Launch browser with custom user agent and additional options
     const browser = await chromium.launch({
-      headless: true,
+      headless: false,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-features=IsolateOrigins,site-per-process',

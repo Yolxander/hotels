@@ -56,14 +56,12 @@ interface HotelImage {
 }
 
 export default function TrackerPage() {
-  console.log('=== TrackerPage Component Rendered ===');
-
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<RoomListing[]>([]);
   const [hotelInfo, setHotelInfo] = useState<HotelInfo | null>(null);
   const [hotelImages, setHotelImages] = useState<HotelImage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [scraperType, setScraperType] = useState<'price' | 'info' | 'images' | 'deals'>('price');
+  const [scraperType, setScraperType] = useState<'price' | 'info' | 'images' | 'deals' | 'prices'>('price');
   const [formData, setFormData] = useState({
     hotel_name: "",
     location: "",
@@ -74,34 +72,51 @@ export default function TrackerPage() {
     email: "",
     travelers: '2'
   });
+  const [hotelPrices, setHotelPrices] = useState<any[]>([]);
 
   const handleInputChange = (field: string, value: any) => {
-    console.log(`=== handleInputChange ===`);
-    console.log('Field:', field);
-    console.log('New Value:', value);
-    console.log('Previous Form Data:', formData);
-    
-    setFormData((prev) => {
-      const newData = { ...prev, [field]: value };
-      console.log('Updated Form Data:', newData);
-      return newData;
-    });
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('=== handleSubmit START ===');
-    console.log('Form Data:', formData);
-    console.log('Scraper Type:', scraperType);
-    
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResults([]);
     setHotelInfo(null);
     setHotelImages([]);
+    setHotelPrices([]);
 
     try {
-      if (scraperType === 'deals') {
+      if (scraperType === 'prices') {
+        console.log('Fetching hotel prices with data:', {
+          hotelName: formData.hotel_name,
+          location: formData.location,
+          checkInDate: formData.check_in_date.toISOString().split('T')[0],
+          checkOutDate: formData.check_out_date.toISOString().split('T')[0]
+        });
+
+        const response = await fetch('/api/hotel-prices', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            hotelName: formData.hotel_name,
+            location: formData.location,
+            checkInDate: formData.check_in_date.toISOString().split('T')[0],
+            checkOutDate: formData.check_out_date.toISOString().split('T')[0]
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch hotel prices');
+        }
+
+        const data = await response.json();
+        console.log('Received hotel prices:', data);
+        setHotelPrices(data.prices || []);
+      } else if (scraperType === 'deals') {
         const response = await fetch('/api/hotel-deals', {
           method: 'POST',
           headers: {
@@ -236,11 +251,11 @@ export default function TrackerPage() {
 
         setHotelImages(data.hotelImages);
       }
+
     } catch (err) {
       console.error('Error in handleSubmit:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while searching for hotels. Please try again.');
     } finally {
-      console.log('=== handleSubmit END ===');
       setLoading(false);
     }
   };
@@ -283,7 +298,7 @@ export default function TrackerPage() {
         <Label htmlFor="scraper-type">Scraper Type</Label>
         <Select
           value={scraperType}
-          onValueChange={(value: 'price' | 'info' | 'images' | 'deals') => {
+          onValueChange={(value: 'price' | 'info' | 'images' | 'deals' | 'prices') => {
             console.log('Scraper type changed to:', value);
             setScraperType(value);
           }}
@@ -296,6 +311,7 @@ export default function TrackerPage() {
             <SelectItem value="info">Hotel Info Scraper</SelectItem>
             <SelectItem value="images">Hotel Images Scraper</SelectItem>
             <SelectItem value="deals">Hotel Deals Scraper</SelectItem>
+            <SelectItem value="prices">Hotel Prices Tracker</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -401,6 +417,63 @@ export default function TrackerPage() {
             </>
           ) : null}
 
+          {scraperType === 'prices' && (
+            <div className="grid gap-2">
+              <Label htmlFor="location">Location*</Label>
+              <Input
+                id="location"
+                placeholder="e.g. Tokyo, Japan"
+                value={formData.location}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {scraperType === 'prices' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="check-in-date">Check-in Date*</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left" disabled={loading}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.check_in_date ? format(formData.check_in_date, "PPP") : <span>Select date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={formData.check_in_date}
+                      onSelect={(date) => handleInputChange("check_in_date", date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="check-out-date">Check-out Date*</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left" disabled={loading}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.check_out_date ? format(formData.check_out_date, "PPP") : <span>Select date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={formData.check_out_date}
+                      onSelect={(date) => handleInputChange("check_out_date", date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="email">Email for Alerts</Label>
             <Input
@@ -431,10 +504,10 @@ export default function TrackerPage() {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {scraperType === 'price' ? 'Searching...' : scraperType === 'info' ? 'Fetching Info...' : scraperType === 'images' ? 'Fetching Images...' : 'Fetching Deals...'}
+              {scraperType === 'price' ? 'Searching...' : scraperType === 'info' ? 'Fetching Info...' : scraperType === 'images' ? 'Fetching Images...' : scraperType === 'deals' ? 'Fetching Deals...' : 'Fetching Prices...'}
             </>
           ) : (
-            scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : scraperType === 'images' ? 'Get Hotel Images' : 'Get Hotel Deals'
+            scraperType === 'price' ? 'Search Hotel' : scraperType === 'info' ? 'Get Hotel Info' : scraperType === 'images' ? 'Get Hotel Images' : scraperType === 'deals' ? 'Get Hotel Deals' : 'Get Hotel Prices'
           )}
         </Button>
 
@@ -481,7 +554,7 @@ export default function TrackerPage() {
         <div className="mt-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto" />
           <p className="mt-2 text-gray-600">
-            {scraperType === 'price' ? 'Searching for hotels...' : scraperType === 'info' ? 'Fetching hotel information...' : scraperType === 'images' ? 'Fetching hotel images...' : 'Fetching hotel deals...'}
+            {scraperType === 'price' ? 'Searching for hotels...' : scraperType === 'info' ? 'Fetching hotel information...' : scraperType === 'images' ? 'Fetching hotel images...' : scraperType === 'deals' ? 'Fetching hotel deals...' : 'Fetching hotel prices...'}
           </p>
         </div>
       )}
@@ -811,6 +884,65 @@ export default function TrackerPage() {
                 </div>
               </div>
             </>
+          )}
+
+          {scraperType === 'prices' && hotelPrices.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">Hotel Prices</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {hotelPrices.map((price, index) => (
+                  <Card key={index} className="flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {price.provider}
+                      </CardTitle>
+                      {price.roomType && (
+                        <CardDescription className="text-sm text-gray-600">
+                          {price.roomType}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <div className="space-y-2">
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold text-green-600">
+                            {price.totalPrice}
+                          </p>
+                          {price.basePrice !== price.totalPrice && (
+                            <p className="text-sm text-gray-500 line-through">
+                              {price.basePrice}
+                            </p>
+                          )}
+                        </div>
+                        {price.cancellationPolicy && (
+                          <p className="text-sm text-gray-600">
+                            {price.cancellationPolicy}
+                          </p>
+                        )}
+                        <a
+                          href={price.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full text-center mt-4"
+                        >
+                          View Deal
+                        </a>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {scraperType === 'prices' && hotelPrices.length === 0 && !loading && (
+            <div className="mt-8">
+              <Alert>
+                <AlertDescription>
+                  No prices found for this hotel. Please try different dates or check back later.
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
         </div>
       )}

@@ -50,17 +50,28 @@ export function Header() {
                   Top Hotels
                 </Link>
               </Button>
-              <Button className="rounded-full bg-black text-white hover:bg-gray-800" asChild>
-                <Link href={isDashboard ? "/" : "/dashboard"}>
-                  {isDashboard ? "Home" : "Go to Dashboard"}
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="rounded-full" onClick={() => signOut()}>
-                <LogOut className="h-5 w-5" />
-              </Button>
+              {pathname !== "/" && (
+                <Button variant="ghost" size="sm" className="rounded-full" asChild>
+                  <Link href="/">
+                    Home
+                  </Link>
+                </Button>
+              )}
+              {pathname !== "/dashboard" && (
+                <Button variant="ghost" size="sm" className="rounded-full" asChild>
+                  <Link href="/dashboard">
+                    Dashboard
+                  </Link>
+                </Button>
+              )}
+              <div className="flex items-center space-x-1 ml-2 border-l pl-2">
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
+                  <Bell className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100" onClick={() => signOut()}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
             </>
           ) : (
             <Button

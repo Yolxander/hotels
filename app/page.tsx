@@ -24,13 +24,13 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/50" />
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
             <h1 className="text-white text-3xl md:text-6xl font-bold tracking-tight text-center leading-tight drop-shadow-lg">
-              Save Money <span className="text-yellow-300">After</span> You Book<br />with CocoStay
+              Save Money <span className="text-yellow-300">After</span> You Book<br />with PricePulse
             </h1>
          
             {/* Subtext & Stats */}
             <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mt-6 md:mt-8">
               <div className="text-white text-sm md:text-base font-medium md:text-left text-center max-w-md px-4 md:px-0">
-                Booked a hotel? Let CocoStay track your reservation and find better deals automatically. We monitor price drops and compare offers across the web—so you never overpay again.
+                Booked a hotel? Let PricePulse track your reservation and find better deals automatically. We monitor price drops and compare offers across the web—so you never overpay again.
               </div>
               <div className="flex gap-6 md:gap-8 mt-4 md:mt-0 text-white text-center">
                 <div>
@@ -54,7 +54,7 @@ export default function Home() {
         <section className="mx-auto mt-16 mb-16 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 max-w-lg leading-tight">
-              How CocoStay Works for You
+              How PricePulse Works for You
             </h2>
             <div className="text-gray-500 text-lg max-w-md mt-4 md:mt-0 md:text-right font-medium">
               Enter your booking details once. We track your hotel's price, compare it across top travel sites, and alert you if you can rebook for less—no extra effort required.

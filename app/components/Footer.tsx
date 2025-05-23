@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-12">
         {/* Left: Logo and Socials */}
         <div className="flex flex-col items-center md:items-start flex-1">
-          <div className="text-6xl font-bold text-yellow-300 mb-8">CocoStay</div>
+          <div className="text-6xl font-bold text-yellow-300 mb-8">PricePulse</div>
           <div className="flex gap-4 mb-4">
             {/* Social Icons */}
             <a href="#" className="bg-[#232526] rounded-full p-3 flex items-center justify-center"><svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 15 15 12 10 9 10 15"/></svg></a>

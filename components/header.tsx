@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LogOut, Bell, Calendar, Users, DollarSign, Building, Search, Menu, X } from "lucide-react"
+import { LogOut, Bell, Calendar, Users, DollarSign, Building, Search, Menu, X, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -38,32 +38,40 @@ export function Header() {
         <div className="hidden md:flex items-center space-x-2">
           {user ? (
             <>
-              <Button variant="ghost" size="sm" className="rounded-full" asChild>
-                <Link href="/tracker">
-                  <Search className="h-4 w-4 mr-2" />
-                  Test Hotel Trackers
+             <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`rounded-full ${pathname === "/" ? "border-b-2 border-yellow-300" : ""}`} 
+                asChild
+              >
+                <Link href="/" className="flex items-center">
+                  <Building className="h-4 w-4 mr-2" />
+                  Home
                 </Link>
               </Button>
-              <Button variant="ghost" size="sm" className="rounded-full" asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`rounded-full ${pathname === "/top-hotels" ? "border-b-2 border-yellow-300" : ""}`} 
+                asChild
+              >
                 <Link href="/top-hotels">
                   <Building className="h-4 w-4 mr-2" />
                   Top Hotels
                 </Link>
               </Button>
-              {pathname !== "/" && (
-                <Button variant="ghost" size="sm" className="rounded-full" asChild>
-                  <Link href="/">
-                    Home
-                  </Link>
-                </Button>
-              )}
-              {pathname !== "/dashboard" && (
-                <Button variant="ghost" size="sm" className="rounded-full" asChild>
-                  <Link href="/dashboard">
-                    Dashboard
-                  </Link>
-                </Button>
-              )}
+             
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`rounded-full ${pathname === "/dashboard" ? "border-b-2 border-yellow-300" : ""}`} 
+                asChild
+              >
+                <Link href="/dashboard" className="flex items-center">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
               <div className="flex items-center space-x-1 ml-2 border-l pl-2">
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
                   <Bell className="h-5 w-5" />
@@ -100,12 +108,6 @@ export function Header() {
           <div className="container px-4 py-4 space-y-4">
             {user ? (
               <>
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href="/tracker" className="flex items-center">
-                    <Search className="h-4 w-4 mr-2" />
-                    Track Hotel
-                  </Link>
-                </Button>
                 <Button variant="ghost" className="w-full justify-start" asChild>
                   <Link href="/top-hotels" className="flex items-center">
                     <Building className="h-4 w-4 mr-2" />

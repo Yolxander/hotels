@@ -7,6 +7,8 @@ import Footer from '../components/Footer'
 import ScrollToSearch from '../components/ScrollToSearch'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
+import { fetchTopHotels, fetchHotelDeals, fetchHotelImages } from '../actions/hotel-actions';
+import { createBooking } from '../actions/booking-actions';
 
 interface Hotel {
   id: number;
@@ -88,13 +90,8 @@ export default function TopHotels() {
   const fetchHotels = async () => {
     try {
       console.log('=== fetchHotels START ===');
-      const response = await fetch('/api/top-hotels');
-      const data = await response.json();
+      const data = await fetchTopHotels();
       
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch hotels');
-      }
-
       console.log('fetchHotels data:', data);
 
       // Create a Set of hotel names to track uniqueness
@@ -175,54 +172,16 @@ export default function TopHotels() {
       const nextWeek = new Date(today);
       nextWeek.setDate(today.getDate() + 7);
 
-      // Format dates as YYYY-MM-DD
-      const formatDate = (date: Date) => {
-        return date.toISOString().split('T')[0];
-      };
-
-      // First fetch hotel image
-      const imageResponse = await fetch('/api/hotel-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          destination: hotel.name
-        }),
+      // Create the booking
+      await createBooking({
+        userId: user?.id || '',
+        hotelName: hotel.name,
+        location: hotel.location,
+        checkInDate: today,
+        checkOutDate: nextWeek,
+        originalPrice: parseFloat(hotel.price.replace(/[^0-9.]/g, '')),
+        roomType: 'Standard Room'
       });
-
-      let imageUrl = '/placeholder.svg?height=200&width=400';
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        if (imageData.hotelImages && imageData.hotelImages.length > 0) {
-          imageUrl = imageData.hotelImages[0].url;
-        }
-      }
-
-      // Save the booking to the database
-      const { data: bookingData, error: bookingError } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            user_id: user?.id,
-            hotel_name: hotel.name,
-            location: hotel.location,
-            check_in_date: formatDate(today),
-            check_out_date: formatDate(nextWeek),
-            original_price: parseFloat(hotel.price.replace(/[^0-9.]/g, '')),
-            current_price: parseFloat(hotel.price.replace(/[^0-9.]/g, '')),
-            savings: 0,
-            room_type: 'Standard Room',
-            image_url: imageUrl,
-            is_discovered: true
-          }
-        ])
-        .select()
-        .single();
-
-      if (bookingError) {
-        throw bookingError;
-      }
 
       // Show success message
       alert('Hotel marked as discovered and saved to your bookings!');
@@ -263,37 +222,24 @@ export default function TopHotels() {
       // Start the loading animation
       simulateLoadingSteps();
 
-      const response = await fetch('/api/hotel-deals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          destination: formData.location,
-          checkIn: formData.checkIn,
-          checkOut: formData.checkOut,
-          travelers: formData.travelers
-        }),
+      const hotelSuggestions = await fetchHotelDeals({
+        destination: formData.location,
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        travelers: formData.travelers
       });
-
-      const data = await response.json();
-      console.log('handleSearch data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch hotel deals');
-      }
 
       // Update local storage with new deals
       const storedDeals = localStorage.getItem('hotelDeals');
       const currentDeals = storedDeals ? JSON.parse(storedDeals) : [];
-      const newDeals = [...currentDeals, ...data.hotelSuggestions];
+      const newDeals = [...currentDeals, ...hotelSuggestions];
       localStorage.setItem('hotelDeals', JSON.stringify(newDeals));
 
       // Update the page with new deals
-      if (data.hotelSuggestions.length > 0) {
+      if (hotelSuggestions.length > 0) {
         // Create a Set of hotel names to track uniqueness
         const uniqueHotels = new Set();
-        const uniqueSuggestions = data.hotelSuggestions.filter((hotel: Hotel) => {
+        const uniqueSuggestions = hotelSuggestions.filter((hotel: Hotel) => {
           if (uniqueHotels.has(hotel.name)) {
             return false;
           }

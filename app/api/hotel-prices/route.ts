@@ -72,13 +72,13 @@ export async function POST(request: Request) {
     console.log('Scraping price listings...');
     const priceListings = await page.evaluate(() => {
       interface PriceListing {
-        provider: string;
-        providerInfo: {
-          logo: string;
-          features: string[];
-          support: string[];
-          memberDeals?: string;
-        };
+        // provider: string;
+        // providerInfo: {
+        //   logo: string;
+        //   features: string[];
+        //   support: string[];
+        //   memberDeals?: string;
+        // };
         rooms: Array<{
           type: string;
           basePrice: string;
@@ -89,16 +89,28 @@ export async function POST(request: Request) {
         }>;
       }
       
-      // Find the first booking provider section
-      const providerSection = document.querySelector('.CcERhd.hGTXTe.qbgwxe');
-      if (!providerSection) {
-        console.log('No provider section found');
-        return [];
-      }
+    // Find the first div that contains at least one 'a' with href starting with "/aclk?"
+const providerSection = Array.from(document.querySelectorAll('div')).find(div =>
+    div.querySelector('a[href^="/aclk?"]')
+  );
+  if (!providerSection) {
+    console.log('No provider section found');
+    return [];
+  }
+  
 
-      // Get provider name and logo
-      const providerName = providerSection.querySelector('.FjC1We')?.textContent?.trim() || 'Unknown Provider';
-      const providerLogo = providerSection.querySelector('img.x7VXS')?.getAttribute('src') || '';
+      // Get provider name using text-based identification
+      const providerName = Array.from(providerSection.querySelectorAll('span'))
+        .map(s => s.textContent?.trim())
+        .find(t => t && (
+          t.toLowerCase().includes('.com') ||
+          t.toLowerCase().includes('booking') ||
+          t.toLowerCase().includes('expedia') ||
+          t.toLowerCase().includes('priceline')
+        )) || 'Unknown Provider';
+
+      // Get provider logo from first img tag
+      const providerLogo = providerSection.querySelector('img')?.getAttribute('src') || '';
       console.log('Found provider:', providerName);
       console.log('Provider logo:', providerLogo);
 
@@ -107,30 +119,54 @@ export async function POST(request: Request) {
       const support: string[] = [];
       let memberDeals: string | undefined;
 
-      providerSection.querySelectorAll('.JYppFe').forEach(info => {
-        const text = info.textContent?.trim() || '';
+      Array.from(providerSection.querySelectorAll('span')).forEach(span => {
+        const text = span.textContent?.trim() || '';
+        if (!text) return;
+      
         if (text.includes('Customer support:')) {
-          const supportItems = text.replace('Customer support:', '').split('·').map(item => item.trim()).filter(Boolean);
+          const supportItems = text.replace('Customer support:', '')
+            .split('·')
+            .map(item => item.trim())
+            .filter(Boolean);
           support.push(...supportItems);
           console.log('Found support options:', supportItems);
-        } else if (text.includes('Member Deals')) {
+        } else if (
+          text.toLowerCase().includes('member deal') ||
+          text.toLowerCase().includes('member price')
+        ) {
           memberDeals = text;
           console.log('Found member deals:', text);
         } else {
+          // Optionally filter out price spans (starts with "$" or "nightly")
+          if (/^\$/.test(text) || text.toLowerCase().includes('nightly')) return;
           features.push(text);
           console.log('Found feature:', text);
         }
       });
-
-      // Get all room listings
-      const rooms = Array.from(providerSection.querySelectorAll('.gkynWe.cTvP0c.tVVare.pS9Ck')).map(room => {
-        const type = room.querySelector('.EI1JTd.EA71Tc')?.textContent?.trim() || 'Unknown Room Type';
+      
+      // Get all room listings using the correct selector
+      const rooms = Array.from(providerSection.querySelectorAll('a[href^="/aclk?"]')).map(room => {
+        // Get room type using structural selectors
+        let type = null;
+        try {
+          type = room.children[0]?.children[0]?.querySelector('div')?.textContent?.trim() ||
+                 room.querySelector('div > div > div')?.textContent?.trim() ||
+                 'Unknown Room Type';
+        } catch (e) {
+          type = 'Unknown Room Type';
+        }
         console.log('\nProcessing room:', type);
         
-        // Get prices
-        const priceElements = room.querySelectorAll('.QoBrxc span');
-        const basePrice = priceElements[0]?.textContent?.trim() || '';
-        const totalPrice = priceElements[2]?.textContent?.trim() || basePrice;
+        // Get prices using text-based identification
+        const allSpans = Array.from(room.querySelectorAll('span'));
+        const basePrice = allSpans
+          .map(s => s.textContent?.trim())
+          .find(t => t && t.includes('$') && !t.toLowerCase().includes('taxes')) || '';
+        
+        const totalPrice = allSpans
+          .map(s => s.textContent?.trim())
+          .find(t => t && t.includes('$') && t.toLowerCase().includes('taxes')) || basePrice;
+        
         console.log('Base price:', basePrice);
         console.log('Total price:', totalPrice);
 
@@ -138,22 +174,41 @@ export async function POST(request: Request) {
         const roomFeatures: string[] = [];
         let cancellationPolicy: string | undefined;
 
-        room.querySelectorAll('.niTXmc.x4RNH').forEach(info => {
-          const text = info.textContent?.trim() || '';
-          if (text.toLowerCase().includes('cancellation')) {
-            cancellationPolicy = text;
-            console.log('Cancellation policy:', text);
-          } else {
-            roomFeatures.push(text);
-            console.log('Room feature:', text);
-          }
-        });
+        Array.from(providerSection.querySelectorAll('span')).forEach(span => {
+  const text = span.textContent?.trim() || '';
+  if (!text) return;
+
+  if (text.includes('Customer support:')) {
+    const supportItems = text.replace('Customer support:', '')
+      .split('·')
+      .map(item => item.trim())
+      .filter(Boolean);
+    support.push(...supportItems);
+    console.log('Found support options:', supportItems);
+  } else if (
+    text.toLowerCase().includes('member deal') ||
+    text.toLowerCase().includes('member price')
+  ) {
+    memberDeals = text;
+    console.log('Found member deals:', text);
+  } else {
+    // Optionally filter out price spans (starts with "$" or "nightly")
+    if (/^\$/.test(text) || text.toLowerCase().includes('nightly')) return;
+    features.push(text);
+    console.log('Found feature:', text);
+  }
+});
+
+
+        // Get the full URL
+        const relativeUrl = room.getAttribute('href') || '';
+        const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.google.com${relativeUrl}`;
 
         const roomData = {
           type,
           basePrice,
           totalPrice,
-          url: room.getAttribute('href') || '',
+          url,
           cancellationPolicy,
           features: roomFeatures.length > 0 ? roomFeatures : undefined
         };
@@ -162,13 +217,6 @@ export async function POST(request: Request) {
       });
 
       const result = [{
-        provider: providerName,
-        providerInfo: {
-          logo: providerLogo,
-          features,
-          support,
-          memberDeals
-        },
         rooms
       }];
 

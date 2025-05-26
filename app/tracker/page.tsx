@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
+import { fetchHotelImages, fetchHotelDeals, fetchHotelPrices, saveHotelDeals, processHotelPrices } from '../actions/hotel-actions';
 
 interface BaseRoomListing {
   name: string;
@@ -96,47 +97,32 @@ export default function TrackerPage() {
           checkOutDate: formData.check_out_date.toISOString().split('T')[0]
         });
 
-        const response = await fetch('/api/hotel-prices', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            hotelName: formData.hotel_name,
-            location: formData.location,
-            checkInDate: formData.check_in_date.toISOString().split('T')[0],
-            checkOutDate: formData.check_out_date.toISOString().split('T')[0]
-          }),
+        const prices = await fetchHotelPrices({
+          hotelName: formData.hotel_name,
+          location: formData.location,
+          checkInDate: formData.check_in_date.toISOString().split('T')[0],
+          checkOutDate: formData.check_out_date.toISOString().split('T')[0]
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch hotel prices');
-        }
-
-        const data = await response.json();
-        console.log('Received hotel prices:', data);
-        setHotelPrices(data.prices || []);
-      } else if (scraperType === 'deals') {
-        const response = await fetch('/api/hotel-deals', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            destination: formData.location,
-            checkIn: formData.check_in_date.toISOString().split('T')[0],
-            checkOut: formData.check_out_date.toISOString().split('T')[0],
-            travelers: formData.travelers
-          }),
-        });
-
-        const data = await response.json();
+        console.log('Received hotel prices:', prices);
         
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch hotel deals');
-        }
-
-        setResults(data.hotelSuggestions.map((deal: any) => ({
+        // Process the prices with room type and original price
+        const processedPrices = await processHotelPrices(
+          prices,
+          formData.room_type,
+          parseFloat(formData.original_price)
+        );
+        
+        setHotelPrices(processedPrices);
+      } else if (scraperType === 'deals') {
+        const deals = await fetchHotelDeals({
+          destination: formData.location,
+          checkIn: formData.check_in_date.toISOString().split('T')[0],
+          checkOut: formData.check_out_date.toISOString().split('T')[0],
+          travelers: formData.travelers
+        });
+        
+        setResults(deals.map((deal: any) => ({
           name: deal.name,
           price: deal.price,
           rating: deal.rating,
@@ -208,7 +194,7 @@ export default function TrackerPage() {
         setResults(transformedResults);
       } else if (scraperType === 'info') {
         console.log('Making API request to /api/hotel-info');
-        const response = await fetch('/api/hotel-info', {
+        const response = await fetch('http://199.19.72.124:3002/api/hotel-info', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -229,27 +215,8 @@ export default function TrackerPage() {
 
         setHotelInfo(data.hotelInfo);
       } else if (scraperType === 'images') {
-        console.log('Making API request to /api/hotel-images');
-        const response = await fetch('/api/hotel-images', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            destination: formData.hotel_name
-          }),
-        });
-
-        console.log('API Response status:', response.status);
-        
-        const data = await response.json();
-        console.log('Hotel Images Response:', data);
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch hotel images');
-        }
-
-        setHotelImages(data.hotelImages);
+        const images = await fetchHotelImages(formData.hotel_name);
+        setHotelImages(images);
       }
 
     } catch (err) {
@@ -264,26 +231,15 @@ export default function TrackerPage() {
     if (!results) return;
 
     try {
-      const response = await fetch('/api/save-hotel-deals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          hotelDeals: results,
-          destination: formData.location,
-          checkIn: formData.check_in_date.toISOString().split('T')[0],
-          checkOut: formData.check_out_date.toISOString().split('T')[0],
-          travelers: formData.travelers
-        }),
+      const data = await saveHotelDeals({
+        hotelDeals: results,
+        destination: formData.location,
+        checkIn: formData.check_in_date.toISOString().split('T')[0],
+        checkOut: formData.check_out_date.toISOString().split('T')[0],
+        travelers: formData.travelers
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        alert(`Successfully saved ${data.count} hotel deals!`);
-      } else {
-        alert('Failed to save hotel deals: ' + data.error);
-      }
+      alert(`Successfully saved ${data.count} hotel deals!`);
     } catch (error) {
       console.error('Error saving hotel deals:', error);
       alert('Failed to save hotel deals');
@@ -329,7 +285,7 @@ export default function TrackerPage() {
             />
           </div>
 
-          {scraperType === 'price' || scraperType === 'deals' ? (
+          {scraperType === 'price' || scraperType === 'deals' || scraperType === 'prices' ? (
             <>
               <div className="grid gap-2">
                 <Label htmlFor="location">Location*</Label>
@@ -356,10 +312,7 @@ export default function TrackerPage() {
                       <Calendar
                         mode="single"
                         selected={formData.check_in_date}
-                        onSelect={(date) => {
-                          console.log('Check-in date selected:', date);
-                          handleInputChange("check_in_date", date);
-                        }}
+                        onSelect={(date) => handleInputChange("check_in_date", date)}
                         initialFocus
                       />
                     </PopoverContent>
@@ -379,10 +332,7 @@ export default function TrackerPage() {
                       <Calendar
                         mode="single"
                         selected={formData.check_out_date}
-                        onSelect={(date) => {
-                          console.log('Check-out date selected:', date);
-                          handleInputChange("check_out_date", date);
-                        }}
+                        onSelect={(date) => handleInputChange("check_out_date", date)}
                         initialFocus
                       />
                     </PopoverContent>
@@ -394,85 +344,26 @@ export default function TrackerPage() {
                 <Label htmlFor="room-type">Room Type*</Label>
                 <Input
                   id="room-type"
-                  placeholder="e.g. Standard Double, Deluxe Suite"
+                  placeholder="e.g. Elite Room, Balcony (Golf Cart Included) - Room Only"
                   value={formData.room_type}
                   onChange={(e) => handleInputChange("room_type", e.target.value)}
                   disabled={loading}
                 />
               </div>
 
-              {scraperType === 'price' && (
               <div className="grid gap-2">
                 <Label htmlFor="original-price">Original Price*</Label>
                 <Input
                   id="original-price"
-                  placeholder="e.g. 320"
+                  placeholder="e.g. 647"
                   type="number"
                   value={formData.original_price}
                   onChange={(e) => handleInputChange("original_price", e.target.value)}
                   disabled={loading}
                 />
               </div>
-              )}
             </>
           ) : null}
-
-          {scraperType === 'prices' && (
-            <div className="grid gap-2">
-              <Label htmlFor="location">Location*</Label>
-              <Input
-                id="location"
-                placeholder="e.g. Tokyo, Japan"
-                value={formData.location}
-                onChange={(e) => handleInputChange("location", e.target.value)}
-                disabled={loading}
-              />
-            </div>
-          )}
-
-          {scraperType === 'prices' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="check-in-date">Check-in Date*</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left" disabled={loading}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.check_in_date ? format(formData.check_in_date, "PPP") : <span>Select date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.check_in_date}
-                      onSelect={(date) => handleInputChange("check_in_date", date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="check-out-date">Check-out Date*</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left" disabled={loading}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.check_out_date ? format(formData.check_out_date, "PPP") : <span>Select date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.check_out_date}
-                      onSelect={(date) => handleInputChange("check_out_date", date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          )}
 
           <div className="grid gap-2">
             <Label htmlFor="email">Email for Alerts</Label>

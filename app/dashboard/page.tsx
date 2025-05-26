@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from 'next/navigation'
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -21,13 +22,21 @@ import {
   CreditCard,
   FileText,
   Loader2,
+  ChevronRight,
+  ChevronLeft,
+  Search,
+  Plus,
+  Trash2,
+  AlertCircle,
+  XCircle,
+  RefreshCw,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -35,7 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
+import { format, addDays, isAfter, isBefore, differenceInDays } from "date-fns"
 import { Header } from "@/components/header"
 import { BookingList } from '@/components/bookings/booking-list'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
@@ -43,6 +52,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { Booking } from '@/app/types/booking'
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { fetchUserBookings, createBooking, saveRoomListings, fetchRoomListings } from '../actions/booking-actions'
+import { fetchHotelImages, fetchHotelPrices, processHotelPrices } from '../actions/hotel-actions'
 
 export default function DashboardPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -66,36 +77,8 @@ export default function DashboardPage() {
   const fetchBookings = async () => {
     if (!user) return
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          room_listings (
-            base_price,
-            total_price
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      // Process bookings to include lowest prices
-      const processedBookings = data.map((booking: any) => {
-        const roomListings = booking.room_listings || [];
-        const lowestPrice = roomListings.length > 0 
-          ? Math.min(...roomListings.map((listing: any) => listing.total_price))
-          : booking.current_price;
-
-        return {
-          ...booking,
-          current_price: lowestPrice,
-          savings: booking.original_price - lowestPrice,
-          hasRoomListings: roomListings.length > 0
-        };
-      });
-
-      setBookings(processedBookings || [])
+      const bookings = await fetchUserBookings(user.id);
+      setBookings(bookings as any); // Type assertion needed due to different Booking types
     } catch (error) {
       console.error('Error fetching bookings:', error)
     } finally {
@@ -324,91 +307,32 @@ export default function DashboardPage() {
     setScrapingError(null)
 
     try {
-      // Fetch hotel image first
-      console.log('Fetching hotel image...');
-      const imageResponse = await fetch('/api/hotel-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          destination: formData.hotel_name
-        }),
+      // First, fetch hotel images
+      console.log('Fetching hotel images...');
+      const hotelImages = await fetchHotelImages(formData.hotel_name);
+      const imageUrl = hotelImages.length > 0 ? hotelImages[0].url : null;
+      console.log('Hotel images fetched:', hotelImages);
+
+      // Create the booking with the first image
+      console.log('Creating booking...');
+      const bookingData = await createBooking({
+        userId: user.id,
+        hotelName: formData.hotel_name,
+        location: formData.location,
+        checkInDate: formData.check_in_date,
+        checkOutDate: formData.check_out_date,
+        originalPrice: parseFloat(formData.original_price),
+        roomType: formData.room_type,
+        imageUrl: imageUrl
       });
+      console.log('Booking created:', bookingData);
 
-      let imageUrl = '/placeholder.svg?height=200&width=400';
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        if (imageData.hotelImages && imageData.hotelImages.length > 0) {
-          imageUrl = imageData.hotelImages[0].url;
-        }
-      }
+      // Add the new booking to the state immediately
+      setBookings(prev => [bookingData, ...prev]);
 
-      // Find room listings
-      console.log('Calling findRoomListings...');
-      const roomListings = await findRoomListings(formData);
-      console.log('findRoomListings returned:', roomListings);
-
-      // Save the booking to the database
-      console.log('Saving booking to database...');
-      const { data: bookingData, error: bookingError } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            user_id: user.id,
-            hotel_name: formData.hotel_name,
-            location: formData.location,
-            check_in_date: formData.check_in_date.toISOString(),
-            check_out_date: formData.check_out_date.toISOString(),
-            original_price: parseFloat(formData.original_price),
-            current_price: parseFloat(formData.original_price),
-            savings: 0,
-            room_type: formData.room_type,
-            image_url: imageUrl
-          }
-        ])
-        .select()
-        .single();
-
-      if (bookingError) {
-        console.error('Supabase error:', bookingError)
-        throw bookingError
-      }
-
-      console.log('Booking saved successfully:', bookingData);
-
-      // Save room listings to the database
-      if (roomListings && roomListings.length > 0) {
-        console.log('Saving room listings to database:', roomListings);
-        const { error: listingsError } = await supabase
-          .from('room_listings')
-          .insert(
-            roomListings.map((listing: any) => ({
-              booking_id: bookingData.id,
-              provider: listing.provider,
-              room_type: listing.roomType,
-              features: listing.features,
-              base_price: listing.basePriceValue,
-              total_price: listing.totalPriceValue,
-              booking_url: listing.bookingUrl,
-              created_at: new Date().toISOString()
-            }))
-          );
-
-        if (listingsError) {
-          console.error('Error saving room listings:', listingsError);
-        } else {
-          console.log('Successfully saved room listings to database');
-        }
-      }
-
-      setLoadingStep('finalizing')
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      setLoadingStep('completed')
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setIsDialogOpen(false)
+      // Close the dialog and reset form
+      setIsDialogOpen(false);
+      setLoadingStep('idle');
       setFormData({
         hotel_name: "",
         location: "",
@@ -416,12 +340,73 @@ export default function DashboardPage() {
         check_out_date: undefined,
         original_price: "",
         room_type: "",
-      })
+      });
 
-      await fetchBookings()
+      // Show loading indicator in bottom right
+      const loadingToast = document.createElement('div');
+      loadingToast.className = 'fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50';
+      loadingToast.innerHTML = `
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        <span>Fetching hotel prices...</span>
+      `;
+      document.body.appendChild(loadingToast);
+
+      // Find room listings
+      console.log('Fetching hotel prices...');
+      const roomListings = await fetchHotelPrices({
+        hotelName: formData.hotel_name,
+        location: formData.location,
+        checkInDate: formData.check_in_date.toISOString().split('T')[0],
+        checkOutDate: formData.check_out_date.toISOString().split('T')[0]
+      });
+      console.log('Hotel prices fetched:', roomListings);
+
+      // Process the prices with room type and original price
+      console.log('Processing hotel prices...');
+      const processedPrices = await processHotelPrices(
+        roomListings,
+        formData.room_type,
+        parseFloat(formData.original_price)
+      );
+      console.log('Processed prices:', processedPrices);
+
+      // Save room listings to the database
+      if (processedPrices && processedPrices.length > 0) {
+        console.log('Saving room listings...');
+        await saveRoomListings(bookingData.id, processedPrices);
+      }
+
+      // Remove loading indicator
+      document.body.removeChild(loadingToast);
+
+      // Show success message
+      const successToast = document.createElement('div');
+      successToast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      successToast.textContent = 'Successfully tracked hotel prices!';
+      document.body.appendChild(successToast);
+      setTimeout(() => {
+        document.body.removeChild(successToast);
+      }, 3000);
+
+      // Refresh bookings and update stats
+      await fetchBookings();
+      
+      // Force a re-render of the dashboard summary
+      setLoading(prev => !prev);
+      setTimeout(() => setLoading(prev => !prev), 100);
+
     } catch (error) {
       console.error('Error in handleSubmit:', error)
       setScrapingError(error instanceof Error ? error.message : 'An error occurred')
+      
+      // Show error toast
+      const errorToast = document.createElement('div');
+      errorToast.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorToast.textContent = error instanceof Error ? error.message : 'An error occurred';
+      document.body.appendChild(errorToast);
+      setTimeout(() => {
+        document.body.removeChild(errorToast);
+      }, 3000);
     } finally {
       setLoadingStep('idle')
       setScrapingLoading(false)
@@ -434,23 +419,23 @@ export default function DashboardPage() {
       setScrapingLoading(true);
       setScrapingError(null);
       setScrapingResults([]);
-      setIsRebookModalOpen(true);
 
-      // Fetch room listings from database
-      const { data: roomListings, error: dbError } = await supabase
-        .from('room_listings')
-        .select('*')
-        .eq('booking_id', booking.id)
-        .order('total_price', { ascending: true });
-
-      if (dbError) {
-        throw new Error('Failed to fetch room listings from database');
-      }
+      // Fetch room listings
+      const roomListings = await fetchRoomListings(booking.id);
 
       if (!roomListings || roomListings.length === 0) {
         setScrapingError('No room listings found for this booking. Please try again later.');
         return;
       }
+
+      // If there's only one room listing, redirect directly to the booking URL
+      if (roomListings.length === 1) {
+        window.open(roomListings[0].booking_url, '_blank');
+        return;
+      }
+
+      // Otherwise, show the modal with multiple options
+      setIsRebookModalOpen(true);
 
       // Format the listings for display
       const formattedListings = roomListings.map((listing: any) => ({
@@ -781,6 +766,7 @@ interface BookingCardProps {
 
 function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savings, image, hasRoomListings }: BookingCardProps) {
   const hasSavings = savings > 0
+  const [isLoadingListings, setIsLoadingListings] = useState(false)
 
   return (
     <Card className="overflow-hidden rounded-3xl">
@@ -839,13 +825,22 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
               rebook and save!
             </p>
           </div>
-        ) : !hasRoomListings && (
+        ) : isLoadingListings ? (
+          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
+              <p className="text-sm text-yellow-800">
+                We're searching for the best prices for your booking. Feel free to keep navigating while we find the best deals!
+              </p>
+            </div>
+          </div>
+        ) : !hasRoomListings ? (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
             <p className="text-sm text-blue-800">
               No cheaper rooms found at the moment. Set up a tracker to monitor price drops and get notified when better deals become available.
             </p>
           </div>
-        )}
+        ) : null}
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" size="sm" className="rounded-full">
@@ -858,7 +853,11 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
             Rebook Now
           </Button>
         ) : !hasRoomListings ? (
-          <Button size="sm" className="rounded-full bg-blue-500 hover:bg-blue-600">
+          <Button 
+            size="sm" 
+            className="rounded-full bg-blue-500 hover:bg-blue-600"
+            onClick={() => setIsLoadingListings(true)}
+          >
             <Bell className="h-4 w-4 mr-2" />
             Set Up Tracker
           </Button>

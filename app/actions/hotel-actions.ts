@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-const API_BASE_URL = 'https://199.19.72.124:3002';
+const API_BASE_URL = '/api';
 
 export interface HotelImage {
   url: string;
@@ -45,7 +45,7 @@ export interface ProcessedHotelPrice {
 }
 
 export async function fetchHotelImages(hotelName: string): Promise<HotelImage[]> {
-  const response = await fetch(`${API_BASE_URL}/api/hotel-images`, {
+  const response = await fetch(`${API_BASE_URL}/hotel-images`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export async function fetchHotelDeals(params: {
   checkOut: string;
   travelers: string;
 }): Promise<HotelDeal[]> {
-  const response = await fetch(`${API_BASE_URL}/api/hotel-deals`, {
+  const response = await fetch(`${API_BASE_URL}/hotel-deals`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export async function fetchHotelPrices(params: {
   checkInDate: string;
   checkOutDate: string;
 }): Promise<HotelPrice[]> {
-  const response = await fetch(`${API_BASE_URL}/api/hotel-prices`, {
+  const response = await fetch(`${API_BASE_URL}/hotel-prices`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export async function fetchTopHotels(): Promise<{
   remainingHotels: HotelDeal[];
   destination: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/top-hotels`);
+  const response = await fetch(`${API_BASE_URL}/top-hotels`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch top hotels');
@@ -128,7 +128,7 @@ export async function saveHotelDeals(params: {
   checkOut: string;
   travelers: string;
 }): Promise<{ count: number }> {
-  const response = await fetch(`${API_BASE_URL}/api/save-hotel-deals`, {
+  const response = await fetch(`${API_BASE_URL}/save-hotel-deals`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

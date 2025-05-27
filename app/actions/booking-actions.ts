@@ -134,4 +134,64 @@ export async function fetchRoomListings(bookingId: string): Promise<RoomListing[
 
   if (error) throw error;
   return data || [];
+}
+
+export async function deleteBooking(bookingId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // First delete associated room listings
+    const { error: listingsError } = await supabase
+      .from('room_listings')
+      .delete()
+      .eq('booking_id', bookingId);
+
+    if (listingsError) throw listingsError;
+
+    // Then delete the booking
+    const { error: bookingError } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', bookingId);
+
+    if (bookingError) throw bookingError;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    return { success: false, error: 'Failed to delete booking' };
+  }
+}
+
+export async function updateBooking(bookingId: string, data: {
+  hotel: string
+  location: string
+  dates: string
+  originalPrice: number
+  currentPrice: number
+  image: string
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Parse the dates string into check-in and check-out dates
+    const [checkInDate, checkOutDate] = data.dates.split(' - ').map(date => date.trim());
+
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        hotel_name: data.hotel,
+        location: data.location,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        original_price: data.originalPrice,
+        current_price: data.currentPrice,
+        image_url: data.image,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating booking:', error);
+    return { success: false, error: 'Failed to update booking' };
+  }
 } 

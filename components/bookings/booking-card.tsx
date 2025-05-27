@@ -4,9 +4,11 @@ import Image from 'next/image'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, Hotel, Clock, Mail, Percent, Bell, RefreshCw } from 'lucide-react'
+import { CalendarIcon, Hotel, Clock, Mail, Percent, Bell, RefreshCw, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { TrackingSetupModal } from './tracking-setup-modal'
+import { EditBookingModal } from './edit-booking-modal'
+import { DeleteBookingDialog } from './delete-booking-dialog'
 
 interface BookingCardProps {
   hotel: string
@@ -38,6 +40,8 @@ export function BookingCard({
   onTrackingUpdate
 }: BookingCardProps) {
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const hasSavings = savings > 0
 
   const handleEmailUpdates = () => {
@@ -49,6 +53,26 @@ export function BookingCard({
       <Card className="overflow-hidden rounded-3xl flex flex-col h-full">
         <div className="relative h-48">
           <img src={image || "/placeholder.svg"} alt={hotel} className="w-full h-full object-cover" />
+          <div className="absolute top-3 left-3 flex gap-2">
+            {!hasRoomListings && (
+              <Button 
+                variant="secondary" 
+                size="icon" 
+                className="h-8 w-8 rounded-full bg-white/90 hover:bg-white"
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="h-8 w-8 rounded-full bg-white/90 hover:bg-white"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
           {hasSavings && <Badge className="absolute top-3 right-3 bg-yellow-300 text-black">Price Drop!</Badge>}
         </div>
         <CardHeader>
@@ -155,6 +179,26 @@ export function BookingCard({
         onClose={() => setIsTrackingModalOpen(false)}
         bookingId={bookingId}
         onSuccess={onTrackingUpdate}
+      />
+
+      <EditBookingModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        booking={{
+          id: bookingId,
+          hotel,
+          location,
+          dates,
+          originalPrice,
+          currentPrice,
+          image,
+        }}
+      />
+
+      <DeleteBookingDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        bookingId={bookingId}
       />
     </>
   )

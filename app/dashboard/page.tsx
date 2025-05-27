@@ -837,7 +837,7 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
               rebook and save!
             </p>
           </div>
-        ) : isLoadingListings && !hasRoomListings ? (
+        ) : !hasRoomListings ? (
           <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
@@ -846,7 +846,7 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
               </p>
             </div>
           </div>
-        ) : !hasRoomListings ? (
+        ) : !hasRoomListings  && !isLoadingListings ? (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
             <p className="text-sm text-blue-800">
               No cheaper rooms found at the moment. Set up a tracker to monitor price drops and get notified when better deals become available.

@@ -69,7 +69,7 @@ export async function fetchHotelDeals(params: {
   checkOut: string;
   travelers: string;
 }): Promise<HotelDeal[]> {
-  const response = await fetch(`${API_BASE_URL}/api/hotel-deals`, {
+  const response = await fetch(`${API_BASE_URL}/api/hotel-suggestions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -112,7 +112,13 @@ export async function fetchTopHotels(): Promise<{
   remainingHotels: HotelDeal[];
   destination: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/top-hotels`);
+  const response = await fetch(`${API_BASE_URL}/api/top-hotels`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({})
+  });
   
   if (!response.ok) {
     throw new Error('Failed to fetch top hotels');

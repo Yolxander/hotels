@@ -7,7 +7,7 @@ import Footer from '../components/Footer'
 import ScrollToSearch from '../components/ScrollToSearch'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { fetchTopHotels, fetchHotelDeals, fetchHotelImages } from '../actions/hotel-actions';
+import { fetchTopHotels, fetchHotelDeals } from '../actions/hotel-actions';
 import { createBooking } from '../actions/booking-actions';
 
 interface Hotel {
@@ -74,7 +74,7 @@ export default function TopHotels() {
   const [topHotels, setTopHotels] = useState<Hotel[]>([]);
   const [remainingHotels, setRemainingHotels] = useState<Hotel[]>([]);
   const [destination, setDestination] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -90,6 +90,7 @@ export default function TopHotels() {
   const fetchHotels = async () => {
     try {
       console.log('=== fetchHotels START ===');
+      setLoading(true);
       const data = await fetchTopHotels();
       
       console.log('fetchHotels data:', data);
@@ -133,12 +134,6 @@ export default function TopHotels() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log('=== useEffect START ===');
-    fetchHotels();
-    console.log('=== useEffect END ===');
-  }, []);
 
   const handleReset = () => {
     // Reset form data

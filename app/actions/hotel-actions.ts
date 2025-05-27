@@ -112,7 +112,7 @@ export async function fetchTopHotels(): Promise<{
   remainingHotels: HotelDeal[];
   destination: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/top-hotels`, {
+  const response = await fetch(`${API_BASE_URL}/api/hotel-suggestions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

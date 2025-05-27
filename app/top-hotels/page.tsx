@@ -87,17 +87,39 @@ export default function TopHotels() {
     checkOut: ''
   });
 
+  // Add useEffect to fetch hotels on page load
+  useEffect(() => {
+    fetchHotels();
+  }, []);
+
   const fetchHotels = async () => {
     try {
       console.log('=== fetchHotels START ===');
       setLoading(true);
-      const data = await fetchTopHotels();
       
-      console.log('fetchHotels data:', data);
+      // Fetch top hotels from Supabase
+      const { data: topHotelsData, error: topError } = await supabase
+        .from('daily_hotel_deals')
+        .select('*')
+        .order('rating', { ascending: false })
+        .order('reviews', { ascending: false })
+        .limit(3);
+
+      if (topError) throw topError;
+
+      // Fetch remaining hotels
+      const { data: remainingHotelsData, error: remainingError } = await supabase
+        .from('daily_hotel_deals')
+        .select('*')
+        .order('rating', { ascending: false })
+        .order('reviews', { ascending: false })
+        .range(3, 8);
+
+      if (remainingError) throw remainingError;
 
       // Create a Set of hotel names to track uniqueness
       const uniqueHotels = new Set();
-      const uniqueTopHotels = data.topHotels.filter((hotel: Hotel) => {
+      const uniqueTopHotels = topHotelsData.filter((hotel: Hotel) => {
         if (uniqueHotels.has(hotel.name)) {
           return false;
         }
@@ -108,7 +130,7 @@ export default function TopHotels() {
       // If we don't have 3 unique top hotels, fill from remaining hotels
       let finalTopHotels = [...uniqueTopHotels];
       if (finalTopHotels.length < 3) {
-        const remainingUniqueHotels = data.remainingHotels.filter((hotel: Hotel) => {
+        const remainingUniqueHotels = remainingHotelsData.filter((hotel: Hotel) => {
           if (uniqueHotels.has(hotel.name)) {
             return false;
           }
@@ -119,14 +141,14 @@ export default function TopHotels() {
       }
 
       // Update remaining hotels to exclude the ones we used in top hotels
-      const remainingHotels = data.remainingHotels.filter((hotel: Hotel) => 
+      const remainingHotels = remainingHotelsData.filter((hotel: Hotel) => 
         !finalTopHotels.some(topHotel => topHotel.name === hotel.name)
       );
 
       console.log('Setting final top hotels:', finalTopHotels);
       setTopHotels(finalTopHotels);
       setRemainingHotels(remainingHotels);
-      setDestination(data.destination);
+      setDestination(finalTopHotels[0]?.destination || '');
       console.log('=== fetchHotels END ===');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch hotels');

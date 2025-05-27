@@ -13,13 +13,21 @@ async function validateImageUrl(url: string): Promise<boolean> {
 }
 
 export async function POST(request: Request) {
+  let browser;
   try {
     const { destination } = await request.json();
     console.log('Scraping hotel images for:', destination);
 
-    const browser = await puppeteer.launch({
-      headless: false,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920,1080'
+      ]
     });
 
     const page = await browser.newPage();
@@ -28,7 +36,7 @@ export async function POST(request: Request) {
     // Navigate to Google Travel search
     const searchUrl = `https://www.google.com/travel/search?q=${encodeURIComponent(destination)}`;
     console.log('Navigating to:', searchUrl);
-    await page.goto(searchUrl, { waitUntil: 'networkidle0' });
+    await page.goto(searchUrl, { waitUntil: 'networkidle0', timeout: 30000 });
     console.log('Page loaded');
 
     // First check if Photos tab is already visible
@@ -49,7 +57,7 @@ export async function POST(request: Request) {
       console.log('Clicked hotel entity link');
 
       // Wait for the hotel page to load
-      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 });
       console.log('Hotel page loaded');
 
       // Now wait for and click the Photos tab
@@ -82,12 +90,6 @@ export async function POST(request: Request) {
       return images;
     });
 
-    // Wait a bit before closing to see the results
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
-    await browser.close();
-    console.log('Browser closed');
-
     if (!hotelImages || hotelImages.length === 0) {
       console.log('No hotel images found');
       return NextResponse.json({ error: 'Could not find hotel images' }, { status: 404 });
@@ -118,5 +120,10 @@ export async function POST(request: Request) {
       { error: 'Failed to scrape hotel images' },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close();
+      console.log('Browser closed');
+    }
   }
 } 

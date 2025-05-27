@@ -194,7 +194,7 @@ export default function TrackerPage() {
         setResults(transformedResults);
       } else if (scraperType === 'info') {
         console.log('Making API request to /api/hotel-info');
-        const response = await fetch('/api/hotel-info', {
+        const response = await fetch('http://199.19.72.124:3002/api/hotel-info', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

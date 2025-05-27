@@ -309,11 +309,13 @@ export default function DashboardPage() {
     try {
       // First, fetch hotel images
       console.log('Fetching hotel images...');
-      const hotelImages = await fetchHotelImages(formData.hotel_name);
+      let hotelImages = await fetchHotelImages(formData.hotel_name);
+      // Filter out images with /gps-proxy/ or /gps-cs-s/
+      hotelImages = hotelImages.filter(img => !img.url.includes('/gps-proxy/') && !img.url.includes('/gps-cs-s/'));
       const imageUrl = hotelImages.length > 0 ? hotelImages[0].url : null;
       console.log('Hotel images fetched:', hotelImages);
 
-      // Create the booking with the first image
+      // Create the booking with the first valid image
       console.log('Creating booking...');
       const bookingData = await createBooking({
         userId: user.id,
@@ -327,8 +329,11 @@ export default function DashboardPage() {
       });
       console.log('Booking created:', bookingData);
 
-      // Add the new booking to the state immediately
-      setBookings(prev => [bookingData, ...prev]);
+      // Add the new booking to the state immediately with loading state
+      setBookings(prev => [{
+        ...bookingData,
+        isLoadingListings: true
+      }, ...prev]);
 
       // Close the dialog and reset form
       setIsDialogOpen(false);
@@ -363,18 +368,25 @@ export default function DashboardPage() {
 
       // Process the prices with room type and original price
       console.log('Processing hotel prices...');
-      const processedPrices = await processHotelPrices(
+      let processedPrices = await processHotelPrices(
         roomListings,
         formData.room_type,
         parseFloat(formData.original_price)
       );
       console.log('Processed prices:', processedPrices);
+      // Deduplicate processedPrices by type and totalPriceValue
+      processedPrices = processedPrices.filter((room, idx, arr) =>
+        idx === arr.findIndex(r => r.type === room.type && r.totalPriceValue === room.totalPriceValue)
+      );
 
       // Save room listings to the database
       if (processedPrices && processedPrices.length > 0) {
         console.log('Saving room listings...');
         await saveRoomListings(bookingData.id, processedPrices);
       }
+
+      // Set isLoadingListings to false for this booking in the state
+      setBookings(prev => prev.map(b => b.id === bookingData.id ? { ...b, isLoadingListings: false } : b));
 
       // Remove loading indicator
       document.body.removeChild(loadingToast);
@@ -762,11 +774,11 @@ interface BookingCardProps {
   savings: number
   image: string
   hasRoomListings: boolean
+  isLoadingListings: boolean
 }
 
-function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savings, image, hasRoomListings }: BookingCardProps) {
+function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savings, image, hasRoomListings, isLoadingListings }: BookingCardProps) {
   const hasSavings = savings > 0
-  const [isLoadingListings, setIsLoadingListings] = useState(false)
 
   return (
     <Card className="overflow-hidden rounded-3xl">
@@ -825,7 +837,7 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
               rebook and save!
             </p>
           </div>
-        ) : isLoadingListings ? (
+        ) : isLoadingListings && !hasRoomListings ? (
           <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
@@ -856,7 +868,6 @@ function BookingCard({ hotel, location, dates, originalPrice, currentPrice, savi
           <Button 
             size="sm" 
             className="rounded-full bg-blue-500 hover:bg-blue-600"
-            onClick={() => setIsLoadingListings(true)}
           >
             <Bell className="h-4 w-4 mr-2" />
             Set Up Tracker

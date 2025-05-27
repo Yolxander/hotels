@@ -14,4 +14,5 @@ export interface Booking {
   created_at: string;
   updated_at: string;
   hasRoomListings: boolean;
+  isLoadingListings?: boolean;
 } 

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://199.19.72.124:3002';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://199.19.72.124:3443';
 
 export interface HotelImage {
   url: string;

@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from '@/lib/auth-context'
 import { AuthModal } from '@/components/auth/auth-modal'
+import Image from "next/image"
 
 export function Header() {
   const pathname = usePathname()
@@ -30,7 +31,7 @@ export function Header() {
       <div className="container flex h-14 items-center justify-between px-4">
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <h1 className="font-bold text-xl md:text-2xl">PricePulse</h1>
+            <Image src="/logo/price-pulse-logo.png" alt="PricePulse Logo" width={90} height={24} priority />
           </Link>
         </div>
 

@@ -1,6 +1,18 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 
 const Footer = () => {
+  // Mobile dropdown state
+  const [open, setOpen] = useState({
+    company: false,
+    features: false,
+    help: false,
+  });
+
+  // Helper to toggle dropdowns
+  const toggle = (section) => setOpen((prev) => ({ ...prev, [section]: !prev[section] }));
+
   return (
     <footer className="w-full bg-[#181a1b] py-16 px-4 mt-24 rounded-t-3xl">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:justify-between md:items-start gap-12">
@@ -18,27 +30,39 @@ const Footer = () => {
         </div>
         {/* Right: Links */}
         <div className="flex-1 flex flex-col md:flex-row justify-end gap-16">
-          <div>
-            <div className="text-white text-lg font-semibold mb-4">Company</div>
-            <ul className="space-y-2">
+          {/* Company */}
+          <div className="footer-section">
+            <div className="text-white text-lg font-semibold mb-4 md:mb-4 md:cursor-default cursor-pointer flex items-center justify-between md:block" onClick={() => toggle('company')}>
+              <span>Company</span>
+              <span className="md:hidden">{open.company ? '▲' : '▼'}</span>
+            </div>
+            <ul className={`space-y-2 md:block ${open.company ? 'block' : 'hidden'} md:!block`}> {/* Always show on desktop */}
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Mission</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Vision</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Our Story</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Meet Our Team</a></li>
             </ul>
           </div>
-          <div>
-            <div className="text-white text-lg font-semibold mb-4">Features</div>
-            <ul className="space-y-2">
+          {/* Features */}
+          <div className="footer-section">
+            <div className="text-white text-lg font-semibold mb-4 md:mb-4 md:cursor-default cursor-pointer flex items-center justify-between md:block" onClick={() => toggle('features')}>
+              <span>Features</span>
+              <span className="md:hidden">{open.features ? '▲' : '▼'}</span>
+            </div>
+            <ul className={`space-y-2 md:block ${open.features ? 'block' : 'hidden'} md:!block`}>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Find Hotels</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Book Hotels</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Plan a Trip</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Write a Review</a></li>
             </ul>
           </div>
-          <div>
-            <div className="text-white text-lg font-semibold mb-4">Help</div>
-            <ul className="space-y-2">
+          {/* Help */}
+          <div className="footer-section">
+            <div className="text-white text-lg font-semibold mb-4 md:mb-4 md:cursor-default cursor-pointer flex items-center justify-between md:block" onClick={() => toggle('help')}>
+              <span>Help</span>
+              <span className="md:hidden">{open.help ? '▲' : '▼'}</span>
+            </div>
+            <ul className={`space-y-2 md:block ${open.help ? 'block' : 'hidden'} md:!block`}>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Term of Services</a></li>
               <li><a href="#" className="text-gray-300 hover:text-yellow-300 transition">Customer Service</a></li>
             </ul>

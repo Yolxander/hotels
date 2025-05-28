@@ -3,6 +3,8 @@ import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
+import BottomNav from "@/components/BottomNav"
+import MobileHeader from "@/components/MobileHeader"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,10 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={inter.className + " bg-white"}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            {children}
+            <MobileHeader />
+            <div className="mt-[56px] md:mt-0">{children}</div>
+            <BottomNav />
           </AuthProvider>
         </ThemeProvider>
       </body>

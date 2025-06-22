@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LogOut, Bell, Calendar, Users, DollarSign, Building, Search, Menu, X, LayoutDashboard, Sparkles } from "lucide-react"
+import { LogOut, Bell, Calendar, Users, DollarSign, Building, Search, Menu, X, LayoutDashboard, Sparkles, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -72,6 +72,17 @@ export function Header() {
                   Mystery Booking
                 </Link>
               </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`rounded-full ${pathname === "/travel-insurance" ? "border-b-2 border-yellow-300" : ""}`} 
+                asChild
+              >
+                <Link href="/travel-insurance" className="flex items-center">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Travel Insurance
+                </Link>
+              </Button>
              
               <Button 
                 variant="ghost" 
@@ -130,6 +141,12 @@ export function Header() {
                   <Link href="/mystery-booking" className="flex items-center">
                     <Sparkles className="h-4 w-4 mr-2" />
                     Mystery Booking
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Link href="/travel-insurance" className="flex items-center">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Travel Insurance
                   </Link>
                 </Button>
                 <Button className="w-full justify-start bg-black text-white hover:bg-gray-800" asChild>

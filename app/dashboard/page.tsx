@@ -707,7 +707,7 @@ export default function DashboardPage() {
       </Dialog>
 
       <main>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 ">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 relative rounded-3xl overflow-hidden">
               <div className="absolute inset-0 z-10 bg-black/50"></div>

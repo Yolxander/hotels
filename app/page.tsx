@@ -27,7 +27,7 @@ export default function Home() {
       <Header />
       <main className="bg-[#f9f9f9] px-1 md:px-4">
         {/* Hero Section */}
-        <section className="relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
+        <section className="relative w-full h-[500px] md:h-[700px] rounded-3xl overflow-hidden mx-auto mt-6 shadow-lg">
           <Image
             src="/hotel/hotel-main.jpg"
             alt="Hotel price tracking hero"

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 
 export default function TravelInsurance() {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-[#f9f9f9]">
@@ -20,7 +21,7 @@ export default function TravelInsurance() {
       <main className="bg-[#f9f9f9] px-1 md:px-4">
         
         {/* Hero Section */}
-        <section className="relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden mx-auto m-6  shadow-lg">
+        <section className="relative w-full h-[500px] md:h-[600px] rounded-3xl overflow-hidden mx-auto m-6  mb-16 shadow-lg">
           <Image
             src="/hotel/splurge-hotel-soneva-jani.jpg"
             alt="Travel insurance protection"
@@ -98,7 +99,7 @@ export default function TravelInsurance() {
               💡 Tip: Even refundable hotel bookings may not cover every situation — insurance fills the gap.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-3xl p-6 shadow-md text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-blue-600" />
@@ -115,14 +116,7 @@ export default function TravelInsurance() {
               <p className="text-gray-600 mb-4">Adds emergency medical coverage</p>
               <Button className="w-full bg-yellow-300 hover:bg-yellow-400 text-gray-900">From $35</Button>
             </div>
-            <div className="bg-white rounded-3xl p-6 shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">COVID-19 Protection</h3>
-              <p className="text-gray-600 mb-4">Optional add-on</p>
-              <Button variant="outline" className="w-full">From $25</Button>
-            </div>
+
             <div className="bg-white rounded-3xl p-6 shadow-md text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Plane className="h-8 w-8 text-purple-600" />
@@ -154,7 +148,7 @@ export default function TravelInsurance() {
               </p>
               <Button 
                 className="bg-yellow-300 hover:bg-yellow-400 text-gray-900 font-semibold px-12 py-4 rounded-full text-xl shadow-lg flex items-center gap-2 transition"
-                onClick={() => setIsQuoteModalOpen(true)}
+                onClick={() => setIsCompareModalOpen(true)}
               >
                 <Shield className="h-6 w-6" />
                 Compare Travel Insurance Plans
@@ -169,19 +163,180 @@ export default function TravelInsurance() {
       {/* Footer Section */}
       <Footer />
 
-      {/* Quote Modal */}
-      {isQuoteModalOpen && (
+      {/* Compare Plans Modal */}
+      {isCompareModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">Get Your Quote</h3>
+          <div className="bg-white rounded-3xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-3xl font-bold text-gray-800">Compare Travel Insurance Plans</h3>
               <button 
-                onClick={() => setIsQuoteModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setIsCompareModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ✕
               </button>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Basic Plan */}
+              <div className="bg-gray-50 rounded-2xl p-6 border-2 border-transparent hover:border-blue-300 transition-all">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-2">Basic</h4>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">$15</div>
+                  <p className="text-gray-600">per person</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Trip Cancellation up to $5,000</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Baggage Loss up to $1,000</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Travel Delay up to $500</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">24/7 Assistance</span>
+                  </li>
+                </ul>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                  onClick={() => {
+                    setIsCompareModalOpen(false)
+                    setIsQuoteModalOpen(true)
+                  }}
+                >
+                  Select Plan
+                </Button>
+              </div>
+
+              {/* Comprehensive Plan */}
+              <div className="bg-white rounded-2xl p-6 border-2 border-yellow-300 relative shadow-lg">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-yellow-300 text-gray-900 text-sm font-bold px-4 py-1 rounded-full">MOST POPULAR</span>
+                </div>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-2">Comprehensive</h4>
+                  <div className="text-3xl font-bold text-green-600 mb-2">$35</div>
+                  <p className="text-gray-600">per person</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Trip Cancellation up to $15,000</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Medical Emergency up to $100,000</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Baggage Loss up to $2,500</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Emergency Evacuation</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">24/7 Assistance</span>
+                  </li>
+                </ul>
+                <Button 
+                  className="w-full bg-yellow-300 hover:bg-yellow-400 text-gray-900"
+                  onClick={() => {
+                    setIsCompareModalOpen(false)
+                    setIsQuoteModalOpen(true)
+                  }}
+                >
+                  Select Plan
+                </Button>
+              </div>
+
+
+
+              {/* Adventure Upgrade */}
+              <div className="bg-gray-50 rounded-2xl p-6 border-2 border-transparent hover:border-purple-300 transition-all">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Plane className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-2">Adventure</h4>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">$45</div>
+                  <p className="text-gray-600">per person</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">All Comprehensive Benefits</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Adventure Sports Coverage</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Equipment Protection</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm">Search & Rescue</span>
+                  </li>
+                </ul>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                  onClick={() => {
+                    setIsCompareModalOpen(false)
+                    setIsQuoteModalOpen(true)
+                  }}
+                >
+                  Select Plan
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-gray-600">Need help choosing? Our experts can help you find the perfect coverage.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Quote Modal */}
+      {isQuoteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Shield className="h-6 w-6 text-blue-600" />
+                Get Your Travel Insurance Quote
+              </h3>
+              <button 
+                onClick={() => setIsQuoteModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>✈️ Smart Integration:</strong> We'll auto-fill your travel details from your hotel booking to make this super quick!
+              </p>
+            </div>
+
             <form className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -203,22 +358,38 @@ export default function TravelInsurance() {
                   <Input type="number" id="travelers" placeholder="2" min="1" className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="age">Traveler Age</Label>
+                  <Label htmlFor="age">Primary Traveler Age</Label>
                   <Input type="number" id="age" placeholder="35" min="1" className="mt-1" />
                 </div>
               </div>
               <div>
-                <Label htmlFor="trip-cost">Trip Cost</Label>
-                <Input type="number" id="trip-cost" placeholder="5000" className="mt-1" />
+                <Label htmlFor="trip-cost">Total Trip Cost</Label>
+                <Input type="number" id="trip-cost" placeholder="$5,000" className="mt-1" />
+                <p className="text-xs text-gray-500 mt-1">Include hotels, flights, and activities</p>
               </div>
               <div>
-                <Label htmlFor="coverage">Coverage Type</Label>
+                <Label htmlFor="coverage">Preferred Coverage Level</Label>
                 <select className="w-full p-2 border border-gray-300 rounded-md mt-1">
-                  <option>Basic Coverage</option>
-                  <option>Comprehensive Coverage</option>
-                  <option>Premium Coverage</option>
+                  <option>Basic Coverage ($15/person)</option>
+                  <option>Comprehensive Coverage ($35/person)</option>
+                  <option>Adventure Upgrade ($45/person)</option>
                 </select>
               </div>
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input type="email" id="email" placeholder="your@email.com" className="mt-1" />
+              </div>
+              
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-sm text-gray-800 mb-2">🎁 Quote Benefits:</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Instant personalized quote</li>
+                  <li>• No obligation to purchase</li>
+                  <li>• 24/7 customer support</li>
+                  <li>• Special rates for hotel bookers</li>
+                </ul>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <Button 
                   type="button"
@@ -230,9 +401,13 @@ export default function TravelInsurance() {
                 </Button>
                 <Button 
                   type="submit"
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  className="flex-1 bg-yellow-300 hover:bg-yellow-400 text-gray-900 font-semibold"
+                  onClick={() => {
+                    setIsQuoteModalOpen(false)
+                    // Add quote logic here
+                  }}
                 >
-                  Get Quote
+                  Get Instant Quote
                 </Button>
               </div>
             </form>
